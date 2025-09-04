@@ -1,8 +1,9 @@
 import { create } from 'zustand';
+import { io, Socket } from 'socket.io-client';
 import { useBattle } from './useBattle';
 
 interface WebSocketState {
-  ws: WebSocket | null;
+  socket: Socket | null;
   isConnected: boolean;
   connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
   lastMessage: any;
@@ -15,140 +16,155 @@ interface WebSocketState {
 }
 
 export const useWebSocket = create<WebSocketState>((set, get) => ({
-  ws: null,
+  socket: null,
   isConnected: false,
   connectionStatus: 'disconnected',
   lastMessage: null,
   
   connect: () => {
-    const { ws } = get();
+    const { socket } = get();
     
     // Don't create multiple connections
-    if (ws && ws.readyState === WebSocket.OPEN) {
+    if (socket && socket.connected) {
       return;
     }
     
     set({ connectionStatus: 'connecting' });
     
     try {
-      // Use the current host with WebSocket protocol
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      // Create Socket.IO connection
+      const newSocket = io({
+        autoConnect: true,
+        reconnection: true,
+        reconnectionDelay: 2000,
+        reconnectionDelayMax: 10000,
+        reconnectionAttempts: 5,
+        timeout: 20000,
+        forceNew: true
+      });
       
-      const newWs = new WebSocket(wsUrl);
-      
-      newWs.onopen = () => {
-        console.log('WebSocket connected');
+      // Connection events
+      newSocket.on('connect', () => {
+        console.log('Socket.IO connected:', newSocket.id);
         set({ 
-          ws: newWs, 
+          socket: newSocket, 
           isConnected: true, 
           connectionStatus: 'connected' 
         });
-      };
+      });
+
+      newSocket.on('connect_error', (error) => {
+        console.error('Socket.IO connection error:', error);
+        set({ connectionStatus: 'error' });
+      });
       
-      newWs.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          console.log('WebSocket message received:', message);
-          
-          set({ lastMessage: message });
-          
-          // Handle different message types
-          const battleStore = useBattle.getState();
-          
-          switch (message.type) {
-            case 'player_joined':
-              battleStore.addPlayer(message.data);
-              break;
-              
-            case 'player_left':
-              battleStore.removePlayer(message.data.playerId);
-              break;
-              
-            case 'player_answer':
-              const { playerId, isCorrect, answer } = message.data;
-              
-              // Update player score
-              const player = battleStore.players.find(p => p.id === playerId);
-              if (player && isCorrect) {
-                battleStore.updatePlayer(playerId, { 
-                  score: player.score + 100 
-                });
-                
-                // Add attack effect
-                battleStore.addAttack({
-                  id: `${playerId}-${Date.now()}`,
-                  playerId,
-                  type: message.data.attackType || 'sword',
-                  damage: 100,
-                  timestamp: Date.now()
-                });
-                
-                // Damage hydra
-                battleStore.damageHydra(100);
-              }
-              break;
-              
-            case 'question_start':
-              battleStore.setCurrentQuestion(message.data);
-              battleStore.setGamePhase('battle');
-              break;
-              
-            case 'question_end':
-              battleStore.setCurrentQuestion(null);
-              break;
-              
-            case 'game_phase_change':
-              battleStore.setGamePhase(message.data.phase);
-              break;
-              
-            case 'hydra_reset':
-              battleStore.resetHydra();
-              break;
-              
-            default:
-              console.log('Unknown message type:', message.type);
-          }
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
-        }
-      };
-      
-      newWs.onclose = (event) => {
-        console.log('WebSocket disconnected:', event.code, event.reason);
+      newSocket.on('disconnect', (reason) => {
+        console.log('Socket.IO disconnected:', reason);
         set({ 
-          ws: null, 
           isConnected: false, 
           connectionStatus: 'disconnected' 
         });
-        
-        // Auto-reconnect after 3 seconds if not intentionally closed
-        if (event.code !== 1000) {
-          setTimeout(() => {
-            get().reconnect();
-          }, 3000);
+      });
+
+      // Game event handlers
+      const battleStore = useBattle.getState();
+
+      newSocket.on('game_state_update', (data) => {
+        console.log('Game state updated:', data);
+        if (data.players) {
+          data.players.forEach((player: any) => battleStore.addPlayer(player));
         }
-      };
+        if (data.phase) {
+          battleStore.setGamePhase(data.phase);
+        }
+        if (typeof data.hydraHealth === 'number') {
+          const damage = battleStore.hydraHealth - data.hydraHealth;
+          if (damage > 0) {
+            battleStore.damageHydra(damage);
+          }
+        }
+        if (data.currentQuestion) {
+          battleStore.setCurrentQuestion(data.currentQuestion);
+        }
+      });
+
+      newSocket.on('player_joined', (data) => {
+        console.log('Player joined:', data.player);
+        if (data.player) {
+          battleStore.addPlayer(data.player);
+        }
+      });
+
+      newSocket.on('player_list_update', (data) => {
+        if (data.type === 'player_joined' && data.player) {
+          battleStore.addPlayer(data.player);
+        } else if (data.type === 'player_left' && data.playerId) {
+          battleStore.removePlayer(data.playerId);
+        }
+      });
+
+      newSocket.on('player_attack', (data) => {
+        console.log('Player attack:', data);
+        const { playerId, attackType, damage, isCorrect, points } = data;
+        
+        // Update player score if correct
+        if (isCorrect && points) {
+          const player = battleStore.players.find(p => p.id === playerId);
+          if (player) {
+            battleStore.updatePlayer(playerId, { 
+              score: player.score + points 
+            });
+          }
+        }
+        
+        // Add attack effect if successful
+        if (isCorrect && attackType !== 'miss') {
+          battleStore.addAttack({
+            id: `${playerId}-${Date.now()}`,
+            playerId,
+            type: attackType,
+            damage: damage || 100,
+            timestamp: Date.now()
+          });
+        }
+      });
+
+      newSocket.on('question_start', (question) => {
+        console.log('Question started:', question);
+        battleStore.setCurrentQuestion(question);
+        battleStore.setGamePhase('battle');
+      });
+
+      newSocket.on('question_end', () => {
+        console.log('Question ended');
+        battleStore.setCurrentQuestion(null);
+      });
+
+      newSocket.on('game_phase_change', (data) => {
+        console.log('Game phase changed:', data.phase);
+        battleStore.setGamePhase(data.phase);
+      });
+
+      newSocket.on('game_reset', () => {
+        console.log('Game reset');
+        battleStore.resetHydra();
+        battleStore.clearAllAttacks();
+      });
       
-      newWs.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        set({ connectionStatus: 'error' });
-      };
-      
-      set({ ws: newWs });
+      set({ socket: newSocket });
       
     } catch (error) {
-      console.error('Error creating WebSocket:', error);
+      console.error('Error creating Socket.IO connection:', error);
       set({ connectionStatus: 'error' });
     }
   },
   
   disconnect: () => {
-    const { ws } = get();
-    if (ws) {
-      ws.close(1000, 'User disconnected');
+    const { socket } = get();
+    if (socket) {
+      socket.disconnect();
       set({ 
-        ws: null, 
+        socket: null, 
         isConnected: false, 
         connectionStatus: 'disconnected' 
       });
@@ -156,16 +172,16 @@ export const useWebSocket = create<WebSocketState>((set, get) => ({
   },
   
   sendMessage: (message) => {
-    const { ws, isConnected } = get();
-    if (ws && isConnected) {
+    const { socket, isConnected } = get();
+    if (socket && isConnected) {
       try {
-        ws.send(JSON.stringify(message));
-        console.log('WebSocket message sent:', message);
+        socket.emit(message.type, message.data);
+        console.log('Socket.IO message sent:', message);
       } catch (error) {
-        console.error('Error sending WebSocket message:', error);
+        console.error('Error sending Socket.IO message:', error);
       }
     } else {
-      console.warn('Cannot send message: WebSocket not connected');
+      console.warn('Cannot send message: Socket.IO not connected');
     }
   },
   
