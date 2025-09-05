@@ -21,19 +21,19 @@ jobs:
     - name: Checkout do código
       uses: actions/checkout@v4
 
+    - name: Instalar pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: latest
+
     - name: Configurar Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: 'npm'
-
-    - name: Instalar pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: 8
+        cache: 'pnpm'
 
     - name: Instalar dependências
-      run: pnpm install
+      run: pnpm install --frozen-lockfile
 
     - name: Executar verificação de tipos
       run: pnpm check
