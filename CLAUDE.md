@@ -16,6 +16,16 @@ pnpm start        # Run production server
 pnpm check        # TypeScript type checking
 pnpm db:push      # Push database schema changes
 
+# Docker Development
+docker-compose up        # Start application with Docker (development mode)
+docker-compose up -d     # Start in detached mode
+docker-compose down      # Stop and remove containers
+docker-compose logs -f   # Follow logs
+
+# Docker Production
+docker build -t hydra-game .  # Build production image
+docker run -p 5000:5000 hydra-game  # Run production container
+
 # Note: After Tailwind CSS v4 upgrade, build/dev issues were resolved by:
 # - Installing @tailwindcss/postcss plugin
 # - Using CSS-based theme configuration instead of tailwind.config.ts

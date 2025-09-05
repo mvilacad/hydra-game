@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: pnpm dev
+    networks:
+      - hydra-network
+    restart: unless-stopped
+
+  # PostgreSQL database (optional, for when you want to switch from in-memory)
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: hydra_game
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - hydra-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  hydra-network:
+    driver: bridge
