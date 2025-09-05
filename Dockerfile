@@ -36,7 +36,6 @@ RUN pnpm install --prod --frozen-lockfile
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/client/dist ./client/dist
 
 # Expose port 5000
 EXPOSE 5000

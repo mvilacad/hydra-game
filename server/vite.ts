@@ -2,14 +2,11 @@ import express, { type Express } from "express";
 import fs from "fs";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
-import { createServer as createViteServer, createLogger, type ServerOptions } from "vite";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 import { type Server } from "http";
-import viteConfig from "../vite.config";
-import { nanoid } from "nanoid";
 
-const viteLogger = createLogger();
+// Vite dependencies are imported dynamically in setupVite function
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -23,18 +20,46 @@ export function log(message: string, source = "express") {
 }
 
 export async function setupVite(app: Express, server: Server) {
-  const serverOptions: ServerOptions = {
+  if (process.env.NODE_ENV !== "development") {
+    throw new Error("setupVite should only be called in development mode");
+  }
+
+  // Dynamically import Vite dependencies
+  const vite = await import("vite");
+  const createViteServer = vite.createServer;
+  const createLogger = vite.createLogger;
+  const { nanoid } = await import("nanoid");
+  const viteLogger = createLogger();
+
+  const serverOptions = {
     middlewareMode: true,
     hmr: { server },
     allowedHosts: true,
   };
 
-  const vite = await createViteServer({
-    ...viteConfig,
+  // Create a minimal vite config directly instead of importing the config file
+  const viteServer = await createViteServer({
+    plugins: [
+      (await import("@vitejs/plugin-react")).default(),
+      (await import("@replit/vite-plugin-runtime-error-modal")).default(),
+      (await import("vite-plugin-glsl")).default(),
+    ],
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "..", "client", "src"),
+        "@shared": path.resolve(__dirname, "..", "shared"),
+      },
+    },
+    root: path.resolve(__dirname, "..", "client"),
+    build: {
+      outDir: path.resolve(__dirname, "..", "dist/public"),
+      emptyOutDir: true,
+    },
+    assetsInclude: ["**/*.gltf", "**/*.glb", "**/*.mp3", "**/*.ogg", "**/*.wav"],
     configFile: false,
     customLogger: {
       ...viteLogger,
-      error: (msg, options) => {
+      error: (msg: string, options?: any) => {
         viteLogger.error(msg, options);
         process.exit(1);
       },
@@ -43,7 +68,7 @@ export async function setupVite(app: Express, server: Server) {
     appType: "custom",
   });
 
-  app.use(vite.middlewares);
+  app.use(viteServer.middlewares);
   app.use(async (req, res, next) => {
     // Skip if this is an API route or static asset
     if (req.originalUrl.startsWith('/api') || req.originalUrl.includes('.')) {
@@ -66,32 +91,12 @@ export async function setupVite(app: Express, server: Server) {
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`,
       );
-      const page = await vite.transformIndexHtml(url, template);
+      const page = await viteServer.transformIndexHtml(url, template);
       res.status(200).set({ "Content-Type": "text/html" }).end(page);
     } catch (e) {
-      vite.ssrFixStacktrace(e as Error);
+      viteServer.ssrFixStacktrace(e as Error);
       next(e);
     }
   });
 }
 
-export function serveStatic(app: Express) {
-  const distPath = path.resolve(__dirname, "public");
-
-  if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
-    );
-  }
-
-  app.use(express.static(distPath));
-
-  // fall through to index.html if the file doesn't exist
-  app.use((_req, res, next) => {
-    // Skip if this is an API route
-    if (_req.originalUrl.startsWith('/api')) {
-      return next();
-    }
-    res.sendFile(path.resolve(distPath, "index.html"));
-  });
-}
