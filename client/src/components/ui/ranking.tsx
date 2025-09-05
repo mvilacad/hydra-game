@@ -26,7 +26,7 @@ export function Ranking({ players, className, showDetailed = false }: RankingPro
   const getCharacterColor = (character: string) => {
     switch (character) {
       case 'warrior': return 'text-orange-400 border-orange-400/30';
-      case 'mage': return 'text-purple-400 border-purple-400/30';
+      case 'mage': return 'text-blue-400 border-blue-400/30';
       case 'archer': return 'text-green-400 border-green-400/30';
       case 'paladin': return 'text-yellow-400 border-yellow-400/30';
       default: return 'text-gray-400 border-gray-400/30';
@@ -66,7 +66,7 @@ export function Ranking({ players, className, showDetailed = false }: RankingPro
                   "flex items-center gap-3 p-3 rounded-lg border transition-all duration-200",
                   "bg-gray-800/50 border-gray-700/50 hover:bg-gray-800/70",
                   isTop3 && "bg-gradient-to-r from-gray-800/80 to-gray-700/80 border-yellow-400/20",
-                  rank === 1 && "shadow-lg shadow-yellow-400/20"
+                  rank === 1 && "border-yellow-400/40"
                 )}
               >
                 {/* Rank */}

@@ -1,13 +1,9 @@
+import { useBattle } from '@/lib/stores/useBattle';
+import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Suspense, useEffect, useState } from 'react';
-import { OrbitControls, Environment } from '@react-three/drei';
-import * as THREE from 'three';
 import { Hydra3D } from './Hydra3D';
 import { PlayerAvatar } from './PlayerAvatar';
-import { AttackEffect } from './AttackEffect';
-import { ParticleSystem } from './ParticleSystem';
-import { useBattle } from '@/lib/stores/useBattle';
-import { useWebSocket } from '@/lib/stores/useWebSocket';
 
 interface BattleSceneProps {
   className?: string;
@@ -16,9 +12,6 @@ interface BattleSceneProps {
 export function BattleScene({ className }: BattleSceneProps) {
   const {
     players,
-    hydraHealth,
-    maxHydraHealth,
-    gamePhase,
     attacks,
     clearAttack
   } = useBattle();
@@ -315,56 +308,7 @@ export function BattleScene({ className }: BattleSceneProps) {
         </Suspense>
       </Canvas>
 
-      {/* Epic Health Bar Overlay */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
-        <div className="bg-black/70 backdrop-blur-md border border-red-500/50 rounded-xl p-6 min-w-[350px] shadow-2xl shadow-red-500/20">
 
-          {/* Epic health bar with glow effects */}
-          <div className="relative w-full h-6 bg-gray-900 rounded-full overflow-hidden border-2 border-red-500/70 shadow-lg shadow-red-500/30">
-            <div
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-red-600 via-red-500 to-orange-500 transition-all duration-500 ease-out shadow-inner health-bar"
-              style={{ width: `${(hydraHealth / maxHydraHealth) * 100}%` }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
-
-            {/* Health bar glow effect */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-red-500/0 via-red-500/50 to-red-500/0 blur-sm -z-10" />
-          </div>
-
-          <div className="flex justify-between items-center mt-3">
-            <span className="text-red-300 font-bold text-lg">{hydraHealth}</span>
-            <span className="text-yellow-400 font-semibold">
-              {((hydraHealth / maxHydraHealth) * 100).toFixed(1)}%
-            </span>
-            <span className="text-gray-300 font-bold text-lg">{maxHydraHealth}</span>
-          </div>
-
-          {/* Damage indicator */}
-          {hydraHealth < maxHydraHealth && (
-            <div className="text-center mt-2">
-              <span className="text-orange-400 text-sm font-semibold animate-bounce">
-                💥 {maxHydraHealth - hydraHealth} DMG DEALT
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Game Phase Indicator */}
-      {gamePhase !== 'battle' && (
-        <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-20">
-          <div className="text-center">
-            <h2 className="text-4xl font-bold text-white mb-4">
-              {gamePhase === 'waiting' ? 'Aguardando Jogadores...' :
-                gamePhase === 'victory' ? 'VITÓRIA!' :
-                  gamePhase === 'defeat' ? 'DERROTA!' : 'Prepare-se!'}
-            </h2>
-            {gamePhase === 'waiting' && (
-              <p className="text-gray-300">Jogadores estão entrando na batalha...</p>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

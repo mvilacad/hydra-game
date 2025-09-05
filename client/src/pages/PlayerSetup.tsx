@@ -23,7 +23,7 @@ const characters = [
     name: 'Mago',
     description: 'Mestre da magia arcana',
     icon: Zap,
-    color: 'text-purple-400 border-purple-400/30 bg-purple-400/10'
+    color: 'text-blue-400 border-blue-400/30 bg-blue-400/10'
   },
   {
     id: 'archer',
@@ -63,11 +63,11 @@ export default function PlayerSetup({ onReady }: PlayerSetupProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-900 via-red-900/10 to-gray-900">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl flex items-center justify-center gap-2">
-            <User className="w-8 h-8 text-purple-400" />
+            <User className="w-8 h-8 text-red-400" />
             Entrar na Batalha
           </CardTitle>
           <p className="text-gray-300">Escolha seu herói e entre na batalha</p>
@@ -105,9 +105,9 @@ export default function PlayerSetup({ onReady }: PlayerSetupProps) {
                       onClick={() => setSelectedCharacter(character.id)}
                       className={cn(
                         "p-4 rounded-lg border-2 transition-all duration-200 text-left",
-                        "hover:scale-105 hover:shadow-lg",
+                        "hover:scale-105",
                         isSelected 
-                          ? character.color + " shadow-lg" 
+                          ? character.color
                           : "border-gray-600 bg-gray-800/50 hover:border-gray-500"
                       )}
                     >
@@ -138,7 +138,7 @@ export default function PlayerSetup({ onReady }: PlayerSetupProps) {
             {/* Submit Button */}
             <Button 
               type="submit" 
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3"
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3"
               disabled={!name.trim() || !selectedCharacter || isLoading}
             >
               {isLoading ? (

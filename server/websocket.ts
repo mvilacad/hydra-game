@@ -263,12 +263,7 @@ export function setupWebSocket(httpServer: HTTPServer) {
       
       broadcastGameState();
 
-      // Start battle if this is the first player and we're waiting
-      if (gameState.phase === 'waiting' && gameState.players.size === 1) {
-        setTimeout(() => {
-          startBattle();
-        }, 2000);
-      }
+      // Battle will only start manually via admin command from hub
     });
 
     // Handle answer submission
