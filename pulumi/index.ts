@@ -12,9 +12,8 @@ const provider = new aws.Provider("aws-provider", {
 const config = new pulumi.Config();
 const instanceType = config.get("instanceType") || "t2.micro";
 
-// The URL of the repository to clone
-// FIXME: Replace this with your repository URL
-const repoUrl = "https://github.com/mvilacad/hydra-game.git";
+// GitHub repository name for container registry
+const repoName = config.get("repoName") || "mvilacad/hydra-game";
 
 // Use existing key pair name if provided, otherwise deploy without SSH access
 const keyPairName = config.get("keyPairName"); // Optional - only set if you have a key pair
@@ -70,7 +69,7 @@ set -e
 
 # Update system and install base packages
 yum update -y
-yum install -y git docker
+yum install -y docker
 
 # Start Docker service and add ec2-user to docker group
 service docker start
@@ -81,11 +80,52 @@ usermod -a -G docker ec2-user
 curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
-# Clone and setup the project as ec2-user
-cd /home/ec2-user
-sudo -u ec2-user git clone ${repoUrl}
-cd hydra-game
+# Create application directory
+mkdir -p /home/ec2-user/hydra-game
+cd /home/ec2-user/hydra-game
 chown -R ec2-user:ec2-user /home/ec2-user/hydra-game
+
+# Create docker-compose.yml file
+cat > docker-compose.yml << 'EOF'
+services:
+  app:
+    image: ghcr.io/${repoName}:latest
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - GITHUB_REPOSITORY=${repoName}
+    restart: unless-stopped
+    pull_policy: always
+
+  # PostgreSQL database (opcional)
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: hydra_game
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+EOF
+
+# Create update script for easy image updates
+cat > update-app.sh << 'EOF'
+#!/bin/bash
+echo "🔄 Atualizando aplicação Hydra Game..."
+cd /home/ec2-user/hydra-game
+docker-compose pull app
+docker-compose up -d --force-recreate app
+echo "✅ Aplicação atualizada com sucesso!"
+EOF
+chmod +x update-app.sh
+chown ec2-user:ec2-user update-app.sh
 
 # Create a systemd service to start the application after boot
 cat > /etc/systemd/system/hydra-game.service << 'EOF'
@@ -100,8 +140,8 @@ RemainAfterExit=yes
 User=ec2-user
 Group=ec2-user
 WorkingDirectory=/home/ec2-user/hydra-game
-ExecStart=/usr/local/bin/docker-compose -f docker-compose.prod.yml up -d
-ExecStop=/usr/local/bin/docker-compose -f docker-compose.prod.yml down
+ExecStart=/usr/local/bin/docker-compose up -d
+ExecStop=/usr/local/bin/docker-compose down
 TimeoutStartSec=600
 
 [Install]
@@ -111,6 +151,14 @@ EOF
 # Enable and start the service
 systemctl enable hydra-game.service
 systemctl start hydra-game.service
+
+# Wait for containers to be ready
+sleep 30
+
+# Show status
+echo "🚀 Hydra Game implantado com sucesso!"
+echo "📦 Usando imagem: ghcr.io/${repoName}:latest"
+echo "🌐 Acesse a aplicação em: http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):5000"
 `;
 
 // Create the EC2 instance

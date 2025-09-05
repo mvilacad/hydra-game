@@ -1,6 +1,9 @@
 services:
   app:
-    image: ghcr.io/${GITHUB_REPOSITORY:-mvilacad/hydra-game}:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
     ports:
       - "5000:5000"
     environment:
@@ -9,7 +12,7 @@ services:
       - hydra-network
     restart: unless-stopped
 
-  # PostgreSQL database (optional, for when you want to switch from in-memory)
+  # PostgreSQL database (opcional, para quando quiser usar ao invés de in-memory)
   db:
     image: postgres:16-alpine
     environment:

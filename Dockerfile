@@ -18,6 +18,8 @@ COPY . .
 
 # Build stage
 FROM base AS builder
+# Increase Node.js heap size for build
+ENV NODE_OPTIONS="--max-old-space-size=768"
 RUN pnpm build
 
 # Production stage

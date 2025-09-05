@@ -22,14 +22,46 @@ docker-compose up -d     # Start in detached mode
 docker-compose down      # Stop and remove containers
 docker-compose logs -f   # Follow logs
 
-# Docker Production
-docker build -t hydra-game .  # Build production image
-docker run -p 5000:5000 hydra-game  # Run production container
+# Docker Production (usando imagens do registry)
+docker-compose -f docker-compose.prod.yml up -d     # Usar imagem do registry
+./update-hydra-game.sh                               # Script para atualizar aplicação
+./debug-server.sh                                    # Script de debug
 
-# Note: After Tailwind CSS v4 upgrade, build/dev issues were resolved by:
-# - Installing @tailwindcss/postcss plugin
-# - Using CSS-based theme configuration instead of tailwind.config.ts
-# - Fixing Express 5 wildcard route patterns (use middleware without patterns)
+# Docker Local Build (para desenvolvimento)
+docker-compose -f docker-compose.local.yml up --build  # Build local
+
+# CI/CD e Deploy
+# - Push para 'main' → GitHub Actions builda e publica imagem
+# - Pulumi usa imagem do GitHub Container Registry
+# - Deploy automático com `pulumi up`
+```
+
+## CI/CD Pipeline
+
+### Workflow Automático
+- **Trigger**: Push ou PR para branch `main`
+- **GitHub Actions**: Builda imagem Docker e publica no GitHub Container Registry (ghcr.io)
+- **Registry**: `ghcr.io/mvilacad/hydra-game:latest`
+- **Deploy**: Pulumi usa imagem pré-buildada (não clona repositório)
+
+### Scripts Utilitários
+- `./update-hydra-game.sh` - Atualiza aplicação localmente com última imagem
+- `./debug-server.sh` - Diagnóstico e troubleshooting
+- **Instância EC2**: Script automático `update-app.sh` disponível para atualizações
+
+### Para Colaboradores
+1. **Fork/Clone**: Fork o repositório e clone localmente
+2. **Desenvolvimento**: Use `pnpm dev` ou `docker-compose up` para desenvolvimento
+3. **Testes**: Execute `pnpm check` antes de commits
+4. **Deploy**: Pull Requests para `main` triggem build automático
+5. **Produção**: Imagem está sempre disponível em `ghcr.io/mvilacad/hydra-game:latest`
+
+### Configuração Pulumi
+```bash
+cd pulumi/
+pulumi config set repoName "seu-usuario/hydra-game"  # Para usar seu fork
+pulumi config set keyPairName "sua-key-pair"         # Opcional para SSH
+pulumi up                                            # Deploy usando imagem do registry
 ```
 
 ## Architecture
