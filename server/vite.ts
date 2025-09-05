@@ -34,8 +34,7 @@ export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },
-    allowedHosts: true,
-  };
+  } as any;
 
   // Create a minimal vite config directly instead of importing the config file
   const viteServer = await createViteServer({

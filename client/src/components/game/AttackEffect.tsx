@@ -172,6 +172,7 @@ export function AttackEffect({ type, startPosition, targetPosition, onComplete }
               count={trail.length}
               array={new Float32Array(trail.flatMap(pos => [pos.x, pos.y, pos.z]))}
               itemSize={3}
+              args={[new Float32Array(trail.flatMap(pos => [pos.x, pos.y, pos.z])), 3]}
             />
           </bufferGeometry>
           <lineBasicMaterial

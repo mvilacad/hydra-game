@@ -213,6 +213,11 @@ export function BattleScene({ className }: BattleSceneProps) {
                   (Math.random() - 0.5) * 40                 // z
                 ))}
                 itemSize={3}
+                args={[new Float32Array(Array.from({ length: 600 }, (_, i) => 
+                  i % 3 === 0 ? (Math.random() - 0.5) * 40 : // x
+                  i % 3 === 1 ? Math.random() * 8 + 1 :      // y
+                  (Math.random() - 0.5) * 40                 // z
+                )), 3]}
               />
             </bufferGeometry>
             <pointsMaterial

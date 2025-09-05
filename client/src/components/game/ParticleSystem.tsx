@@ -20,8 +20,8 @@ export function ParticleSystem({
   autoStart = true
 }: ParticleSystemProps) {
   const pointsRef = useRef<THREE.Points>(null);
-  const velocitiesRef = useRef<Float32Array>();
-  const lifetimesRef = useRef<Float32Array>();
+  const velocitiesRef = useRef<Float32Array>(new Float32Array(count * 3));
+  const lifetimesRef = useRef<Float32Array>(new Float32Array(count));
   const startTimeRef = useRef(0);
 
   // Particle configuration based on type
