@@ -13,29 +13,29 @@ interface PlayerSetupProps {
 const characters = [
   {
     id: 'warrior',
-    name: 'Warrior',
-    description: 'Master of melee combat',
+    name: 'Guerreiro',
+                      description: 'Mestre do combate corpo a corpo',
     icon: Sword,
     color: 'text-orange-400 border-orange-400/30 bg-orange-400/10'
   },
   {
     id: 'mage',
-    name: 'Mage',
-    description: 'Wielder of arcane magic',
+    name: 'Mago',
+    description: 'Mestre da magia arcana',
     icon: Zap,
     color: 'text-purple-400 border-purple-400/30 bg-purple-400/10'
   },
   {
     id: 'archer',
-    name: 'Archer',
-    description: 'Expert marksman and ranger',
+    name: 'Arqueiro',
+    description: 'Atirador especialista e ranger',
     icon: Target,
     color: 'text-green-400 border-green-400/30 bg-green-400/10'
   },
   {
     id: 'paladin',
-    name: 'Paladin',
-    description: 'Holy warrior and protector',
+    name: 'Paladino',
+    description: 'Guerreiro sagrado e protetor',
     icon: Shield,
     color: 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10'
   }
@@ -68,22 +68,22 @@ export default function PlayerSetup({ onReady }: PlayerSetupProps) {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl flex items-center justify-center gap-2">
             <User className="w-8 h-8 text-purple-400" />
-            Join the Battle
+            Entrar na Batalha
           </CardTitle>
-          <p className="text-gray-300">Choose your hero and enter the fray</p>
+          <p className="text-gray-300">Escolha seu herói e entre na batalha</p>
         </CardHeader>
         
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Name Input */}
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-white">Hero Name</Label>
+              <Label htmlFor="name" className="text-white">Nome do Herói</Label>
               <Input
                 id="name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your hero name"
+                placeholder="Digite o nome do seu herói"
                 className="bg-gray-800 border-gray-600 text-white placeholder-gray-400"
                 maxLength={20}
                 required
@@ -92,7 +92,7 @@ export default function PlayerSetup({ onReady }: PlayerSetupProps) {
 
             {/* Character Selection */}
             <div className="space-y-3">
-              <Label className="text-white">Choose Your Class</Label>
+              <Label className="text-white">Escolha Sua Classe</Label>
               <div className="grid grid-cols-2 gap-3">
                 {characters.map((character) => {
                   const Icon = character.icon;
@@ -144,10 +144,10 @@ export default function PlayerSetup({ onReady }: PlayerSetupProps) {
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Joining Battle...
+                  Entrando na Batalha...
                 </div>
               ) : (
-                "Ready for Battle!"
+                "Pronto para a Batalha!"
               )}
             </Button>
           </form>

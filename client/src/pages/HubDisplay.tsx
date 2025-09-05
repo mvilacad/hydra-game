@@ -9,13 +9,13 @@ import { Sword, Users, Target } from 'lucide-react';
 
 export default function HubDisplay() {
   const { connect, isConnected } = useWebSocket();
-  const { 
-    players, 
-    gamePhase, 
-    hydraHealth, 
+  const {
+    players,
+    gamePhase,
+    hydraHealth,
     maxHydraHealth,
     currentQuestion,
-    questionTimeLeft 
+    questionTimeLeft
   } = useBattle();
 
   // Connect to WebSocket on mount
@@ -30,7 +30,7 @@ export default function HubDisplay() {
       {/* Main battle scene */}
       <div className="relative w-full h-full">
         <BattleScene className="absolute inset-0" />
-        
+
         {/* UI Overlay */}
         <div className="absolute inset-0 pointer-events-none">
           {/* Top HUD */}
@@ -41,22 +41,22 @@ export default function HubDisplay() {
                 <div className="flex items-center gap-3">
                   <Sword className="w-6 h-6 text-purple-400" />
                   <div>
-                    <h3 className="font-bold text-white">Battle Status</h3>
+                    <h3 className="font-bold text-white">Status da Batalha</h3>
                     <p className="text-gray-300 capitalize">{gamePhase}</p>
                   </div>
                 </div>
-                
+
                 <div className="mt-3 flex items-center gap-4 text-sm">
                   <div className="flex items-center gap-1">
                     <Users className="w-4 h-4 text-green-400" />
                     <span className="text-white">{players.length}</span>
-                    <span className="text-gray-400">Players</span>
+                    <span className="text-gray-400">Jogadores</span>
                   </div>
-                  
+
                   <div className="flex items-center gap-1">
                     <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`} />
                     <span className="text-gray-400">
-                      {isConnected ? 'Connected' : 'Disconnected'}
+                      {isConnected ? 'Conectado' : 'Desconectado'}
                     </span>
                   </div>
                 </div>
@@ -67,17 +67,17 @@ export default function HubDisplay() {
             {gamePhase === 'battle' && currentQuestion && (
               <Card className="bg-black/70 backdrop-blur-sm border-blue-500/30">
                 <CardContent className="p-4 text-center">
-                  <h4 className="font-semibold text-white mb-2">Question Time</h4>
-                  <Timer 
-                    duration={30} 
-                    onComplete={() => {}}
+                  <h4 className="font-semibold text-white mb-2">Tempo da Pergunta</h4>
+                  <Timer
+                    duration={30}
+                    onComplete={() => { }}
                     className="scale-75"
                     showProgress={false}
                   />
-                  
+
                   <div className="mt-2 text-sm text-gray-300">
                     <Target className="w-4 h-4 inline mr-1" />
-                    Round {currentQuestion?.round || 1}
+                    Rodada {currentQuestion?.round || 1}
                   </div>
                 </CardContent>
               </Card>
@@ -86,8 +86,8 @@ export default function HubDisplay() {
 
           {/* Right side - Player Ranking */}
           <div className="absolute top-4 right-4 pointer-events-auto">
-            <Ranking 
-              players={players} 
+            <Ranking
+              players={players}
               showDetailed={true}
               className="bg-black/70 backdrop-blur-sm border-yellow-500/30"
             />
@@ -100,13 +100,13 @@ export default function HubDisplay() {
                 <Card className="bg-black/70 backdrop-blur-sm border-purple-500/30">
                   <CardContent className="p-6 text-center">
                     <h3 className="text-2xl font-bold text-purple-400 mb-2">
-                      Waiting for Heroes...
+                      Aguardando Heróis...
                     </h3>
                     <p className="text-gray-300">
-                      Players can join by visiting the mobile app
+                      Jogadores podem entrar visitando o app móvel
                     </p>
                     <div className="mt-4 text-sm text-gray-400">
-                      {players.length} player{players.length !== 1 ? 's' : ''} connected
+                      {players.length} jogador{players.length !== 1 ? 'es' : ''} conectado{players.length !== 1 ? 's' : ''}
                     </div>
                   </CardContent>
                 </Card>
@@ -119,7 +119,7 @@ export default function HubDisplay() {
                       🎉 VICTORY! 🎉
                     </h3>
                     <p className="text-xl text-white mb-4">
-                      The Hydra has been slain!
+                      A Hidra foi derrotada!
                     </p>
                     {players.length > 0 && (
                       <div className="text-lg text-yellow-200">
@@ -137,10 +137,10 @@ export default function HubDisplay() {
                       💀 DEFEAT 💀
                     </h3>
                     <p className="text-xl text-white mb-4">
-                      The heroes have fallen...
+                      Os heróis caíram...
                     </p>
                     <div className="text-lg text-gray-300">
-                      Better luck next time!
+                      Mais sorte na próxima vez!
                     </div>
                   </CardContent>
                 </Card>
@@ -154,7 +154,7 @@ export default function HubDisplay() {
               <Card className="bg-black/80 backdrop-blur-sm border-blue-500/30 max-w-2xl">
                 <CardContent className="p-6">
                   <h4 className="text-lg font-semibold text-blue-400 mb-3">
-                    Current Question
+                    Questão Atual
                   </h4>
                   <p className="text-white text-xl mb-4">
                     {currentQuestion.question}

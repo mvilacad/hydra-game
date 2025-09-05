@@ -1,82 +1,82 @@
-# Overview
+# Visão Geral
 
-This is a gamified 3D battle application inspired by games like Hearthstone, League of Legends, and Paladins. It's a cooperative beat 'em up game where players answer questions on their mobile devices to attack a 3D animated Hydra displayed on a central hub screen. The application features real-time multiplayer functionality with WebSocket communication, 3D graphics using Three.js, and a modern dark-themed UI.
+Esta é uma aplicação de batalha 3D gamificada inspirada em jogos como Hearthstone, League of Legends e Paladins. É um jogo cooperativo de beat 'em up onde os jogadores respondem a perguntas em seus dispositivos móveis para atacar uma Hidra animada em 3D exibida em uma tela de hub central. A aplicação possui funcionalidade multiplayer em tempo real com comunicação WebSocket, gráficos 3D usando Three.js e uma interface de usuário moderna com tema escuro.
 
-# User Preferences
+# Preferências do Usuário
 
-Preferred communication style: Simple, everyday language.
+Estilo de comunicação preferido: Linguagem simples e cotidiana.
 
-# System Architecture
+# Arquitetura do Sistema
 
-## Frontend Architecture
-The application uses a dual-view architecture:
+## Arquitetura Frontend
+A aplicação usa uma arquitetura de visualização dupla:
 
-- **Mobile App**: React-based mobile interface for individual players to join games, select characters, and answer questions
-- **Hub Display**: Large screen display showing the 3D battle scene with the Hydra, player avatars, rankings, and real-time battle effects
+- **Aplicativo Móvel**: Interface móvel baseada em React para jogadores individuais entrarem nos jogos, selecionarem personagens e responderem a perguntas.
+- **Tela do Hub**: Tela grande que exibe a cena de batalha 3D com a Hidra, avatares dos jogadores, classificações e efeitos de batalha em tempo real.
 
-Both views are served from the same React application but render different components based on URL parameters (`?view=mobile` or `?view=hub`).
+Ambas as visualizações são servidas pela mesma aplicação React, mas renderizam componentes diferentes com base nos parâmetros da URL (`?view=mobile` ou `?view=hub`).
 
-## Technology Stack
-- **Frontend**: React 18 with TypeScript, Vite for build tooling
-- **3D Graphics**: Three.js with React Three Fiber for 3D rendering, animations, and particle effects
-- **UI Components**: Radix UI primitives with custom styling using Tailwind CSS
-- **State Management**: Zustand stores for game state, WebSocket connections, and audio management
-- **Real-time Communication**: Socket.IO for WebSocket connections between mobile clients and hub display
-- **Styling**: Tailwind CSS with custom dark theme configuration
+## Pilha de Tecnologia
+- **Frontend**: React 18 com TypeScript, Vite para ferramentas de compilação.
+- **Gráficos 3D**: Three.js com React Three Fiber para renderização 3D, animações e efeitos de partículas.
+- **Componentes de UI**: Primitivas Radix UI com estilo personalizado usando Tailwind CSS.
+- **Gerenciamento de Estado**: Zustand para o estado do jogo, conexões WebSocket e gerenciamento de áudio.
+- **Comunicação em Tempo Real**: Socket.IO para conexões WebSocket entre clientes móveis e a tela do hub.
+- **Estilo**: Tailwind CSS com configuração de tema escuro personalizado.
 
-## Backend Architecture
-- **Server**: Express.js with TypeScript running on Node.js
-- **WebSocket**: Socket.IO server handling real-time game state synchronization
-- **Storage**: In-memory storage implementation with interface for future database integration
-- **API**: RESTful endpoints for health checks, game status, and questions
+## Arquitetura Backend
+- **Servidor**: Express.js com TypeScript rodando em Node.js.
+- **WebSocket**: Servidor Socket.IO que lida com a sincronização do estado do jogo em tempo real.
+- **Armazenamento**: Implementação de armazenamento em memória com interface para futura integração com banco de dados.
+- **API**: Endpoints RESTful para verificações de saúde, status do jogo e perguntas.
 
-## Database Design
-Currently uses in-memory storage with a clean interface (`IStorage`) that can be easily swapped for persistent storage. The schema includes:
-- **Users**: Basic user authentication structure with username/password
-- Database schema is defined using Drizzle ORM with PostgreSQL dialect for future implementation
+## Design do Banco de Dados
+Atualmente, usa armazenamento em memória com uma interface limpa (`IStorage`) que pode ser facilmente trocada por armazenamento persistente. O esquema inclui:
+- **Usuários**: Estrutura básica de autenticação de usuário com nome de usuário/senha.
+- O esquema do banco de dados é definido usando Drizzle ORM com dialeto PostgreSQL para implementação futura.
 
-## Game State Management
-- **Centralized State**: Game state managed on the server and synchronized across all clients
-- **Player Management**: Track player connections, characters, scores, and real-time status
-- **Battle System**: Hydra health tracking, attack animations, and damage calculation
-- **Question System**: Dynamic question delivery with different attack types (sword, arrow, magic, fire)
+## Gerenciamento de Estado do Jogo
+- **Estado Centralizado**: O estado do jogo é gerenciado no servidor e sincronizado entre todos os clientes.
+- **Gerenciamento de Jogadores**: Rastreia conexões de jogadores, personagens, pontuações e status em tempo real.
+- **Sistema de Batalha**: Rastreamento da vida da Hidra, animações de ataque e cálculo de dano.
+- **Sistema de Perguntas**: Entrega dinâmica de perguntas com diferentes tipos de ataque (espada, flecha, magia, fogo).
 
-## 3D Graphics System
-- **Hydra Model**: Custom 3D Hydra with multiple heads, dynamic health-based coloring, and damage animations
-- **Player Avatars**: Character-specific 3D models with class-based styling (warrior, mage, archer, paladin)
-- **Attack Effects**: Animated projectiles and particle systems for different attack types
-- **Particle Systems**: Dynamic particle effects for hits, magic, explosions, and environmental atmosphere
-- **Camera System**: Automated camera movements to highlight battle action
+## Sistema de Gráficos 3D
+- **Modelo da Hidra**: Hidra 3D personalizada com múltiplas cabeças, coloração baseada na vida e animações de dano.
+- **Avatares dos Jogadores**: Modelos 3D específicos para cada personagem com estilo baseado na classe (guerreiro, mago, arqueiro, paladino).
+- **Efeitos de Ataque**: Projéteis animados e sistemas de partículas para diferentes tipos de ataque.
+- **Sistemas de Partículas**: Efeitos de partículas dinâmicos para acertos, magia, explosões e atmosfera do ambiente.
+- **Sistema de Câmera**: Movimentos de câmera automatizados para destacar a ação da batalha.
 
-## Real-time Features
-- **WebSocket Events**: Player joins, answers, attacks, game state updates
-- **Synchronization**: All clients receive real-time updates for seamless multiplayer experience
-- **Attack Animation**: Immediate visual feedback when players answer questions correctly
+## Funcionalidades em Tempo Real
+- **Eventos WebSocket**: Entrada de jogadores, respostas, ataques, atualizações do estado do jogo.
+- **Sincronização**: Todos os clientes recebem atualizações em tempo real para uma experiência multiplayer perfeita.
+- **Animação de Ataque**: Feedback visual imediato quando os jogadores respondem corretamente às perguntas.
 
-# External Dependencies
+# Dependências Externas
 
-## Core Dependencies
-- **@neondatabase/serverless**: Database connection (configured for PostgreSQL)
-- **drizzle-orm**: Database ORM and schema management
-- **socket.io**: Real-time WebSocket communication
+## Dependências Principais
+- **@neondatabase/serverless**: Conexão com o banco de dados (configurado para PostgreSQL).
+- **drizzle-orm**: ORM de banco de dados e gerenciamento de esquema.
+- **socket.io**: Comunicação WebSocket em tempo real.
 
-## 3D Graphics
-- **three**: Core 3D graphics library
-- **@react-three/fiber**: React renderer for Three.js
-- **@react-three/drei**: Useful helpers and abstractions for React Three Fiber
-- **@react-three/postprocessing**: Post-processing effects for enhanced visuals
-- **vite-plugin-glsl**: GLSL shader support for custom visual effects
+## Gráficos 3D
+- **three**: Biblioteca principal de gráficos 3D.
+- **@react-three/fiber**: Renderizador React para Three.js.
+- **@react-three/drei**: Helpers e abstrações úteis para React Three Fiber.
+- **@react-three/postprocessing**: Efeitos de pós-processamento para visuais aprimorados.
+- **vite-plugin-glsl**: Suporte a shaders GLSL para efeitos visuais personalizados.
 
-## UI Framework
-- **@radix-ui/react-***: Complete set of accessible UI primitives
-- **tailwindcss**: Utility-first CSS framework with custom dark theme
-- **class-variance-authority**: Utility for managing component variants
-- **cmdk**: Command palette component
+## Framework de UI
+- **@radix-ui/react-***: Conjunto completo de primitivas de UI acessíveis.
+- **tailwindcss**: Framework CSS utility-first com tema escuro personalizado.
+- **class-variance-authority**: Utilitário para gerenciar variantes de componentes.
+- **cmdk**: Componente de paleta de comandos.
 
-## Development Tools
-- **vite**: Fast build tool and development server
-- **typescript**: Type safety and enhanced developer experience
-- **@replit/vite-plugin-runtime-error-modal**: Development error handling
+## Ferramentas de Desenvolvimento
+- **vite**: Ferramenta de compilação rápida e servidor de desenvolvimento.
+- **typescript**: Segurança de tipos e experiência de desenvolvedor aprimorada.
+- **@replit/vite-plugin-runtime-error-modal**: Manipulação de erros em desenvolvimento.
 
-## Audio Support
-The build configuration supports audio files (.mp3, .ogg, .wav) and 3D model formats (.gltf, .glb) for enhanced game assets.
+## Suporte de Áudio
+A configuração de compilação suporta arquivos de áudio (.mp3, .ogg, .wav) e formatos de modelo 3D (.gltf, .glb) para ativos de jogo aprimorados.

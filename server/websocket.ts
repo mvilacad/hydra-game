@@ -32,56 +32,56 @@ const gameState: GameState = {
 const questionPool = [
   {
     id: "q1",
-    question: "What is the capital of France?",
-    options: ["London", "Berlin", "Paris", "Madrid"],
+    question: "Qual é a capital da França?",
+    options: ["Londres", "Berlim", "Paris", "Madrid"],
     correct: "Paris",
     type: "sword"
   },
   {
     id: "q2",
-    question: "Which planet is known as the Red Planet?",
-    options: ["Venus", "Mars", "Jupiter", "Saturn"],
-    correct: "Mars",
+    question: "Qual planeta é conhecido como o Planeta Vermelho?",
+    options: ["Vênus", "Marte", "Júpiter", "Saturno"],
+    correct: "Marte",
     type: "arrow"
   },
   {
     id: "q3",
-    question: "What is 15 + 27?",
+    question: "Quanto é 15 + 27?",
     options: ["40", "42", "45", "47"],
     correct: "42",
     type: "magic"
   },
   {
     id: "q4",
-    question: "Who painted the Mona Lisa?",
+    question: "Quem pintou a Mona Lisa?",
     options: ["Van Gogh", "Picasso", "Da Vinci", "Monet"],
     correct: "Da Vinci",
     type: "fire"
   },
   {
     id: "q5",
-    question: "What is the largest ocean on Earth?",
-    options: ["Atlantic", "Indian", "Arctic", "Pacific"],
-    correct: "Pacific",
+    question: "Qual é o maior oceano da Terra?",
+    options: ["Atlântico", "Índico", "Ártico", "Pacífico"],
+    correct: "Pacífico",
     type: "sword"
   },
   {
     id: "q6",
-    question: "What is the chemical symbol for gold?",
+    question: "Qual é o símbolo químico do ouro?",
     options: ["Go", "Gd", "Au", "Ag"],
     correct: "Au",
     type: "magic"
   },
   {
     id: "q7",
-    question: "How many continents are there?",
+    question: "Quantos continentes existem?",
     options: ["5", "6", "7", "8"],
     correct: "7",
     type: "arrow"
   },
   {
     id: "q8",
-    question: "What year did World War II end?",
+    question: "Em que ano terminou a Segunda Guerra Mundial?",
     options: ["1943", "1944", "1945", "1946"],
     correct: "1945",
     type: "fire"
@@ -237,7 +237,7 @@ export function setupWebSocket(httpServer: HTTPServer) {
       const { name, character } = data;
       
       if (!name || !character) {
-        socket.emit('error', { message: 'Name and character are required' });
+        socket.emit('error', { message: 'Nome e personagem são obrigatórios' });
         return;
       }
 

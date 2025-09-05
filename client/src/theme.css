@@ -2,25 +2,25 @@
 
 @theme {
   /* Core theme colors */
-  --color-background: 224 71% 4%;
-  --color-foreground: 213 31% 91%;
-  --color-card: 224 71% 4%;
-  --color-card-foreground: 213 31% 91%;
-  --color-popover: 224 71% 4%;
-  --color-popover-foreground: 213 31% 91%;
-  --color-primary: 263 70% 50%;
-  --color-primary-foreground: 210 40% 98%;
-  --color-secondary: 215 27% 17%;
-  --color-secondary-foreground: 210 40% 98%;
-  --color-muted: 215 27% 17%;
-  --color-muted-foreground: 217 10% 65%;
-  --color-accent: 215 27% 17%;
-  --color-accent-foreground: 210 40% 98%;
-  --color-destructive: 0 63% 31%;
-  --color-destructive-foreground: 210 40% 98%;
-  --color-border: 215 27% 17%;
-  --color-input: 215 27% 17%;
-  --color-ring: 263 70% 50%;
+  --color-background: 0 0% 11%; /* #1b1b1b */
+  --color-foreground: 0 0% 100%;
+  --color-card: 0 0% 11%; /* #1b1b1b */
+  --color-card-foreground: 0 0% 100%;
+  --color-popover: 0 0% 11%; /* #1b1b1b */
+  --color-popover-foreground: 0 0% 100%;
+  --color-primary: 358 97% 50%; /* #fe040c */
+  --color-primary-foreground: 0 0% 100%;
+  --color-secondary: 0 0% 15%;
+  --color-secondary-foreground: 0 0% 100%;
+  --color-muted: 0 0% 15%;
+  --color-muted-foreground: 0 0% 65%;
+  --color-accent: 0 0% 15%;
+  --color-accent-foreground: 0 0% 100%;
+  --color-destructive: 0 84% 60%;
+  --color-destructive-foreground: 0 0% 100%;
+  --color-border: 0 0% 20%;
+  --color-input: 0 0% 15%;
+  --color-ring: 358 97% 50%; /* #fe040c */
   
   --color-chart-1: 173 58% 39%;
   --color-chart-2: 12 76% 61%;

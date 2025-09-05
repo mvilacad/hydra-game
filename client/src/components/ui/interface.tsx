@@ -35,7 +35,7 @@ export function Interface() {
           variant="outline"
           size="icon"
           onClick={toggleMute}
-          title={isMuted ? "Unmute" : "Mute"}
+          title={isMuted ? "Reativar Som" : "Silenciar"}
         >
           {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
         </Button>
@@ -44,7 +44,7 @@ export function Interface() {
           variant="outline"
           size="icon"
           onClick={restart}
-          title="Restart Game"
+          title="Reiniciar Jogo"
         >
           <RotateCw size={18} />
         </Button>
@@ -57,19 +57,19 @@ export function Interface() {
             <CardHeader>
               <CardTitle className="flex items-center justify-center gap-2">
                 <Trophy className="text-yellow-500" />
-                Level Complete!
+                Nível Concluído!
               </CardTitle>
             </CardHeader>
             
             <CardContent>
               <p className="text-center text-muted-foreground">
-                Congratulations! You successfully navigated the course.
+                Parabéns! Você navegou com sucesso pelo curso.
               </p>
             </CardContent>
             
             <CardFooter className="flex justify-center">
               <Button onClick={restart} className="w-full">
-                Play Again
+                Jogar Novamente
               </Button>
             </CardFooter>
           </Card>
@@ -80,12 +80,12 @@ export function Interface() {
       <div className="fixed bottom-4 left-4 z-10">
         <Card className="w-auto max-w-xs bg-background/80 backdrop-blur-sm">
           <CardContent className="p-4">
-            <h3 className="font-medium mb-2">Controls:</h3>
+            <h3 className="font-medium mb-2">Controles:</h3>
             <ul className="text-sm space-y-1 text-muted-foreground">
-              <li>WASD or Arrow Keys: Move the ball</li>
-              <li>Space: Jump</li>
-              <li>R: Restart game</li>
-              <li>M: Toggle sound</li>
+              <li>WASD ou Setas: Mover a bola</li>
+              <li>Espaço: Pular</li>
+              <li>R: Reiniciar jogo</li>
+              <li>M: Alternar som</li>
             </ul>
           </CardContent>
         </Card>

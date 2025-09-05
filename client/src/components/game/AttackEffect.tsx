@@ -1,7 +1,7 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useSpring, animated, config } from '@react-spring/three';
 import * as THREE from 'three';
-import { useBattle } from '@/lib/stores/useBattle';
 
 interface AttackEffectProps {
   type: 'sword' | 'arrow' | 'magic' | 'fire';
@@ -12,176 +12,181 @@ interface AttackEffectProps {
 
 export function AttackEffect({ type, startPosition, targetPosition, onComplete }: AttackEffectProps) {
   const meshRef = useRef<THREE.Group>(null);
-  const progressRef = useRef(0);
-  const durationRef = useRef(1.5); // seconds
-  const [trail, setTrail] = useState<THREE.Vector3[]>([]);
-  const trailRef = useRef<THREE.Line>(null);
-
-  // Create attack geometry based on type
-  const attackGeometry = (() => {
-    const group = new THREE.Group();
-    
+  
+  // Enhanced attack configuration
+  const attackConfig = useMemo(() => {
     switch (type) {
       case 'sword':
-        const swordGeometry = new THREE.BoxGeometry(0.1, 2, 0.1);
-        const swordMaterial = new THREE.MeshPhongMaterial({ 
+        return {
+          duration: 800,
           color: 0xC0C0C0,
-          shininess: 100,
-          emissive: 0x444444
-        });
-        const sword = new THREE.Mesh(swordGeometry, swordMaterial);
-        sword.rotation.z = Math.PI / 4;
-        group.add(sword);
-        break;
-        
+          emissive: 0x888888,
+          scale: [0.2, 2, 0.1] as [number, number, number],
+          geometry: 'box'
+        };
       case 'arrow':
-        const arrowGeometry = new THREE.ConeGeometry(0.05, 1.5, 8);
-        const arrowMaterial = new THREE.MeshPhongMaterial({ 
+        return {
+          duration: 1200,
           color: 0x8B4513,
-          emissive: 0x222222
-        });
-        const arrow = new THREE.Mesh(arrowGeometry, arrowMaterial);
-        arrow.rotation.z = -Math.PI / 2;
-        group.add(arrow);
-        break;
-        
+          emissive: 0x444422,
+          scale: [0.1, 1.5, 0.1] as [number, number, number],
+          geometry: 'cone'
+        };
       case 'magic':
-        const magicGeometry = new THREE.SphereGeometry(0.3, 8, 6);
-        const magicMaterial = new THREE.MeshPhongMaterial({ 
+        return {
+          duration: 1500,
           color: 0x9932CC,
-          emissive: 0x4B0082,
-          emissiveIntensity: 0.5,
-          transparent: true,
-          opacity: 0.8
-        });
-        const magic = new THREE.Mesh(magicGeometry, magicMaterial);
-        group.add(magic);
-        
-        // Add magical aura
-        const auraGeometry = new THREE.SphereGeometry(0.5, 8, 6);
-        const auraMaterial = new THREE.MeshBasicMaterial({ 
-          color: 0xDDA0DD,
-          transparent: true,
-          opacity: 0.3
-        });
-        const aura = new THREE.Mesh(auraGeometry, auraMaterial);
-        group.add(aura);
-        break;
-        
+          emissive: 0x6B0199,
+          scale: [0.6, 0.6, 0.6] as [number, number, number],
+          geometry: 'sphere'
+        };
       case 'fire':
-        const fireGeometry = new THREE.SphereGeometry(0.4, 6, 6);
-        const fireMaterial = new THREE.MeshPhongMaterial({ 
+        return {
+          duration: 1000,
           color: 0xFF4500,
           emissive: 0xFF6600,
-          emissiveIntensity: 0.8,
-          transparent: true,
-          opacity: 0.9
-        });
-        const fire = new THREE.Mesh(fireGeometry, fireMaterial);
-        group.add(fire);
+          scale: [0.8, 0.8, 0.8] as [number, number, number],
+          geometry: 'sphere'
+        };
+      default:
+        return {
+          duration: 1000,
+          color: 0xFFFFFF,
+          emissive: 0x444444,
+          scale: [0.5, 0.5, 0.5] as [number, number, number],
+          geometry: 'sphere'
+        };
+    }
+  }, [type]);
+
+  // Enhanced geometry creation
+  const attackGeometry = useMemo(() => {
+    const group = new THREE.Group();
+    
+    let geometry: THREE.BufferGeometry;
+    switch (attackConfig.geometry) {
+      case 'box':
+        geometry = new THREE.BoxGeometry(...attackConfig.scale);
+        break;
+      case 'cone':
+        geometry = new THREE.ConeGeometry(attackConfig.scale[0], attackConfig.scale[1], 8);
+        break;
+      case 'sphere':
+      default:
+        geometry = new THREE.SphereGeometry(attackConfig.scale[0], 16, 12);
         break;
     }
+    
+    const material = new THREE.MeshStandardMaterial({
+      color: attackConfig.color,
+      emissive: attackConfig.emissive,
+      emissiveIntensity: 0.6,
+      roughness: 0.2,
+      metalness: type === 'sword' ? 0.9 : 0.1,
+      transparent: ['magic', 'fire'].includes(type),
+      opacity: ['magic', 'fire'].includes(type) ? 0.8 : 1.0
+    });
+    
+    const mesh = new THREE.Mesh(geometry, material);
+    
+    if (type === 'sword') mesh.rotation.z = Math.PI / 4;
+    if (type === 'arrow') mesh.rotation.z = -Math.PI / 2;
+    
+    mesh.castShadow = true;
+    group.add(mesh);
     
     return group;
-  })();
+  }, [type, attackConfig]);
 
-  // Animation loop
-  useFrame((state, delta) => {
+  // Enhanced spring animation
+  const { position, scale } = useSpring({
+    from: { 
+      position: startPosition, 
+      scale: [0.1, 0.1, 0.1] as [number, number, number]
+    },
+    to: { 
+      position: targetPosition, 
+      scale: [1, 1, 1] as [number, number, number]
+    },
+    config: { tension: 120, friction: 20 },
+    onRest: onComplete
+  });
+
+  // Optimized animation loop for effects only
+  useFrame((state) => {
     if (!meshRef.current) return;
     
-    progressRef.current += delta / durationRef.current;
+    const time = state.clock.elapsedTime;
     
-    if (progressRef.current >= 1) {
-      progressRef.current = 1;
-      onComplete?.();
-      return;
-    }
-    
-    // Interpolate position with easing
-    const progress = progressRef.current;
-    const easedProgress = 1 - Math.pow(1 - progress, 2); // ease out quad
-    const currentPos = new THREE.Vector3().lerpVectors(
-      new THREE.Vector3(...startPosition),
-      new THREE.Vector3(...targetPosition),
-      easedProgress
-    );
-    
-    meshRef.current.position.copy(currentPos);
-    
-    // Update trail for magical effects
-    if (type === 'magic' || type === 'fire') {
-      setTrail(prevTrail => {
-        const newTrail = [...prevTrail, currentPos.clone()];
-        return newTrail.slice(-10); // Keep last 10 positions
-      });
-    }
-    
-    // Enhanced rotation effects
-    meshRef.current.rotation.y += delta * 15;
-    
-    // Type-specific animations
-    switch (type) {
-      case 'magic':
-        meshRef.current.rotation.x += delta * 12;
-        meshRef.current.scale.setScalar(1 + Math.sin(state.clock.elapsedTime * 15) * 0.3);
-        break;
-      case 'fire':
-        meshRef.current.rotation.z += delta * 20;
-        const fireScale = 1 + Math.sin(state.clock.elapsedTime * 20) * 0.4;
-        meshRef.current.scale.setScalar(fireScale);
-        break;
-      case 'arrow':
-        // Arrow should point toward target
-        const direction = new THREE.Vector3().subVectors(
-          new THREE.Vector3(...targetPosition),
-          currentPos
-        ).normalize();
-        meshRef.current.lookAt(currentPos.clone().add(direction));
-        break;
-      case 'sword':
-        meshRef.current.rotation.z += delta * 25;
-        break;
-    }
+    // Type-specific effect animations
+    const children = meshRef.current.children;
+    children.forEach((child) => {
+      if (child instanceof THREE.Mesh) {
+        switch (type) {
+          case 'magic':
+            child.rotation.x += 0.02;
+            child.rotation.y += 0.03;
+            break;
+          case 'fire':
+            child.rotation.x += 0.04;
+            child.scale.setScalar(1 + Math.sin(time * 18) * 0.1);
+            break;
+          case 'arrow':
+            // Arrow points towards target naturally via spring
+            break;
+          case 'sword':
+            child.rotation.z += 0.1;
+            break;
+        }
+      }
+    });
   });
 
   return (
     <group>
-      {/* Main attack object */}
-      <group ref={meshRef} position={startPosition}>
+      <animated.group 
+        ref={meshRef} 
+        // @ts-ignore - React Spring type issue
+        position={position}
+        // @ts-ignore - React Spring type issue
+        scale={scale}
+      >
         <primitive object={attackGeometry} />
         
-        {/* Glow effect */}
+        {/* Enhanced glow effects */}
         {(type === 'magic' || type === 'fire') && (
           <mesh scale={[2, 2, 2]}>
-            <sphereGeometry args={[0.5, 8, 6]} />
+            <sphereGeometry args={[attackConfig.scale[0] * 0.8, 12, 8]} />
             <meshBasicMaterial
-              color={type === 'magic' ? 0x9932CC : 0xFF4500}
+              color={attackConfig.emissive}
               transparent
-              opacity={0.2}
+              opacity={0.3}
             />
           </mesh>
         )}
-      </group>
-      
-      {/* Magical trail effect */}
-      {(type === 'magic' || type === 'fire') && trail.length > 1 && (
-        <line>
-          <bufferGeometry>
-            <bufferAttribute
-              attach="attributes-position"
-              count={trail.length}
-              array={new Float32Array(trail.flatMap(pos => [pos.x, pos.y, pos.z]))}
-              itemSize={3}
-              args={[new Float32Array(trail.flatMap(pos => [pos.x, pos.y, pos.z])), 3]}
+        
+        {/* Spark effects for sword */}
+        {type === 'sword' && (
+          <mesh scale={[1.5, 0.2, 1.5]}>
+            <sphereGeometry args={[0.3, 8, 6]} />
+            <meshBasicMaterial
+              color={0xFFFF88}
+              transparent
+              opacity={0.4}
             />
-          </bufferGeometry>
-          <lineBasicMaterial
-            color={type === 'magic' ? 0x9932CC : 0xFF6600}
-            transparent
-            opacity={0.6}
-          />
-        </line>
-      )}
+          </mesh>
+        )}
+      </animated.group>
+      
+      {/* Impact anticipation effect */}
+      <mesh position={targetPosition} scale={[0.3, 0.3, 0.3]}>
+        <sphereGeometry args={[0.3, 8, 6]} />
+        <meshBasicMaterial
+          color={attackConfig.color}
+          transparent
+          opacity={0.3}
+        />
+      </mesh>
     </group>
   );
 }

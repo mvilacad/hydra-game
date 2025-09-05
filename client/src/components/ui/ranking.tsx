@@ -45,20 +45,20 @@ export function Ranking({ players, className, showDetailed = false }: RankingPro
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2">
           <Trophy className="w-6 h-6 text-yellow-400" />
-          Player Ranking
+          Ranking dos Jogadores
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="space-y-2">
         {sortedPlayers.length === 0 ? (
           <div className="text-center py-8 text-gray-400">
-            No players joined yet
+            Nenhum jogador entrou ainda
           </div>
         ) : (
           sortedPlayers.map((player, index) => {
             const rank = index + 1;
             const isTop3 = rank <= 3;
-            
+
             return (
               <div
                 key={player.id}
@@ -97,7 +97,7 @@ export function Ranking({ players, className, showDetailed = false }: RankingPro
                       <div className="w-2 h-2 bg-red-400 rounded-full" />
                     )}
                   </div>
-                  
+
                   {showDetailed && (
                     <div className="text-xs text-gray-400 capitalize">
                       {player.character}
@@ -129,7 +129,7 @@ export function Ranking({ players, className, showDetailed = false }: RankingPro
           <div className="mt-4 p-3 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-400/30 rounded-lg">
             <div className="flex items-center gap-2 text-yellow-400 font-semibold">
               <Star className="w-5 h-5" />
-              <span>Current MVP: {sortedPlayers[0].name}</span>
+              <span>MVP Atual: {sortedPlayers[0].name}</span>
             </div>
           </div>
         )}
