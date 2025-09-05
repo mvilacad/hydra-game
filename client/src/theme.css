@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+@theme {
+  /* Core theme colors */
+  --color-background: 224 71% 4%;
+  --color-foreground: 213 31% 91%;
+  --color-card: 224 71% 4%;
+  --color-card-foreground: 213 31% 91%;
+  --color-popover: 224 71% 4%;
+  --color-popover-foreground: 213 31% 91%;
+  --color-primary: 263 70% 50%;
+  --color-primary-foreground: 210 40% 98%;
+  --color-secondary: 215 27% 17%;
+  --color-secondary-foreground: 210 40% 98%;
+  --color-muted: 215 27% 17%;
+  --color-muted-foreground: 217 10% 65%;
+  --color-accent: 215 27% 17%;
+  --color-accent-foreground: 210 40% 98%;
+  --color-destructive: 0 63% 31%;
+  --color-destructive-foreground: 210 40% 98%;
+  --color-border: 215 27% 17%;
+  --color-input: 215 27% 17%;
+  --color-ring: 263 70% 50%;
+  
+  --color-chart-1: 173 58% 39%;
+  --color-chart-2: 12 76% 61%;
+  --color-chart-3: 197 37% 24%;
+  --color-chart-4: 43 74% 66%;
+  --color-chart-5: 27 87% 67%;
+  
+  --color-sidebar: var(--color-background);
+  --color-sidebar-foreground: var(--color-foreground);
+  --color-sidebar-primary: var(--color-primary);
+  --color-sidebar-primary-foreground: var(--color-primary-foreground);
+  --color-sidebar-accent: var(--color-accent);
+  --color-sidebar-accent-foreground: var(--color-accent-foreground);
+  --color-sidebar-border: var(--color-border);
+  --color-sidebar-ring: var(--color-ring);
+  
+  --radius: 0.75rem;
+  
+  /* Border radius utilities */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  
+  /* Animation keyframes */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+}
+
+/* CSS variables for backward compatibility */
+:root {
+  --background: var(--color-background);
+  --foreground: var(--color-foreground);
+  --card: var(--color-card);
+  --card-foreground: var(--color-card-foreground);
+  --popover: var(--color-popover);
+  --popover-foreground: var(--color-popover-foreground);
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-primary-foreground);
+  --secondary: var(--color-secondary);
+  --secondary-foreground: var(--color-secondary-foreground);
+  --muted: var(--color-muted);
+  --muted-foreground: var(--color-muted-foreground);
+  --accent: var(--color-accent);
+  --accent-foreground: var(--color-accent-foreground);
+  --destructive: var(--color-destructive);
+  --destructive-foreground: var(--color-destructive-foreground);
+  --border: var(--color-border);
+  --input: var(--color-input);
+  --ring: var(--color-ring);
+  --chart-1: var(--color-chart-1);
+  --chart-2: var(--color-chart-2);
+  --chart-3: var(--color-chart-3);
+  --chart-4: var(--color-chart-4);
+  --chart-5: var(--color-chart-5);
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
