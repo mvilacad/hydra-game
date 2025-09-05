@@ -11,7 +11,7 @@ interface QuestionProps {
     options: string[];
     correct: string;
     type: 'sword' | 'arrow' | 'magic' | 'fire';
-  };
+  } | null;
   onAnswer: (answer: string) => void;
   timeLeft: number;
 }
@@ -23,10 +23,17 @@ export default function Question({ question, onAnswer, timeLeft }: QuestionProps
 
   // Reset state when question changes
   useEffect(() => {
-    setSelectedAnswer('');
-    setHasAnswered(false);
-    setShowFeedback(false);
-  }, [question.id]);
+    if (question?.id) {
+      setSelectedAnswer('');
+      setHasAnswered(false);
+      setShowFeedback(false);
+    }
+  }, [question?.id]);
+
+  // Don't render if no question
+  if (!question) {
+    return null;
+  }
 
   const handleAnswerSelect = (answer: string) => {
     if (hasAnswered) return;

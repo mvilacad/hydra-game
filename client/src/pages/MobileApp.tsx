@@ -15,6 +15,11 @@ export default function MobileApp() {
   const [currentQuestion, setCurrentQuestion] = useState<any>(null);
   const [timeLeft, setTimeLeft] = useState(30);
   
+  // Debug current player state
+  useEffect(() => {
+    console.log('Current player updated:', currentPlayer);
+  }, [currentPlayer]);
+  
   const { 
     isConnected, 
     connect, 
@@ -25,7 +30,8 @@ export default function MobileApp() {
   const { 
     players, 
     gamePhase: battlePhase,
-    hydraHealth 
+    hydraHealth,
+    currentQuestion: battleCurrentQuestion 
   } = useBattle();
 
   const { playSuccess, playHit } = useAudio();
@@ -36,8 +42,57 @@ export default function MobileApp() {
     return () => disconnect();
   }, [connect, disconnect]);
 
+  // Listen for player updates to get player ID
+  useEffect(() => {
+    if (currentPlayer && !currentPlayer.id && players.length > 0) {
+      // Find our player in the players list by matching name and character
+      const matchingPlayer = players.find(p => 
+        p.name === currentPlayer.name && 
+        p.character === currentPlayer.character
+      );
+      
+      if (matchingPlayer && matchingPlayer.id) {
+        console.log('Found matching player with ID:', matchingPlayer.id);
+        setCurrentPlayer({
+          ...currentPlayer,
+          id: matchingPlayer.id
+        });
+      }
+    }
+  }, [currentPlayer, players]);
+
+  // Listen for new questions from battle store
+  useEffect(() => {
+    if (battleCurrentQuestion && currentPlayer) {
+      // If we have a new question (different from current one)
+      if (!currentQuestion || currentQuestion.id !== battleCurrentQuestion.id) {
+        setCurrentQuestion(battleCurrentQuestion);
+        setGamePhase('question');
+        setTimeLeft(30);
+      }
+    } else if (!battleCurrentQuestion && currentQuestion) {
+      // Question ended, reset to waiting
+      setCurrentQuestion(null);
+      if (gamePhase === 'question' || gamePhase === 'results') {
+        setGamePhase('waiting');
+      }
+    }
+  }, [battleCurrentQuestion, currentPlayer, currentQuestion, gamePhase]);
+
+  // Listen for battle phase changes
+  useEffect(() => {
+    if (battlePhase === 'battle' && currentPlayer && gamePhase === 'waiting') {
+      setGamePhase('question');
+    } else if (battlePhase === 'waiting' && gamePhase === 'results') {
+      setGamePhase('waiting');
+    } else if (battlePhase === 'victory' || battlePhase === 'defeat') {
+      setGamePhase('ended');
+    }
+  }, [battlePhase, currentPlayer, gamePhase]);
+
   // Handle player setup completion
   const handlePlayerReady = (playerData: { name: string; character: string }) => {
+    console.log('Player ready:', playerData);
     setCurrentPlayer(playerData);
     setGamePhase('waiting');
     
@@ -49,19 +104,25 @@ export default function MobileApp() {
 
   // Handle answer submission
   const handleAnswerSubmit = (answer: string) => {
-    if (!currentQuestion || !currentPlayer) return;
+    if (!currentQuestion || !currentPlayer) {
+      console.log('Cannot submit answer - missing data:', { currentQuestion, currentPlayer });
+      return;
+    }
     
     const isCorrect = answer === currentQuestion.correct;
+    const submitData = {
+      playerId: currentPlayer.id,
+      questionId: currentQuestion.id,
+      answer,
+      isCorrect,
+      timeSpent: 30 - timeLeft
+    };
+    
+    console.log('Submitting answer:', submitData);
     
     sendMessage({
       type: 'answer_submit',
-      data: {
-        playerId: currentPlayer.id,
-        questionId: currentQuestion.id,
-        answer,
-        isCorrect,
-        timeSpent: 30 - timeLeft
-      }
+      data: submitData
     });
 
     // Play feedback sound
@@ -72,6 +133,13 @@ export default function MobileApp() {
     }
 
     setGamePhase('results');
+    
+    // Auto-return to waiting after a delay to be ready for next question
+    setTimeout(() => {
+      if (gamePhase === 'results') {
+        setGamePhase('waiting');
+      }
+    }, 3000);
   };
 
   // Render based on current phase

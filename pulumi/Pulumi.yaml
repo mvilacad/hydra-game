@@ -1,0 +1,3 @@
+name: hydra-game
+runtime: nodejs
+description: A Pulumi program to deploy the Hydra Game to AWS

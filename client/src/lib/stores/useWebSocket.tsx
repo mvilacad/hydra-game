@@ -78,10 +78,7 @@ export const useWebSocket = create<WebSocketState>((set, get) => ({
           battleStore.setGamePhase(data.phase);
         }
         if (typeof data.hydraHealth === 'number') {
-          const damage = battleStore.hydraHealth - data.hydraHealth;
-          if (damage > 0) {
-            battleStore.damageHydra(damage);
-          }
+          battleStore.setHydraHealth(data.hydraHealth);
         }
         if (data.currentQuestion) {
           battleStore.setCurrentQuestion(data.currentQuestion);

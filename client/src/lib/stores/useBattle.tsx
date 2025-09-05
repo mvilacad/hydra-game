@@ -27,6 +27,7 @@ interface BattleState {
   
   // Hydra actions
   damageHydra: (damage: number) => void;
+  setHydraHealth: (health: number) => void;
   resetHydra: () => void;
   
   // Question actions
@@ -78,6 +79,14 @@ export const useBattle = create<BattleState>()(
       
       return {
         hydraHealth: newHealth,
+        gamePhase: newPhase
+      };
+    }),
+    
+    setHydraHealth: (health) => set((state) => {
+      const newPhase = health <= 0 ? 'victory' : state.gamePhase;
+      return {
+        hydraHealth: Math.max(0, health),
         gamePhase: newPhase
       };
     }),
