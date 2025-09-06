@@ -1,2 +1,2 @@
 // Export HubGameView
-export { default as HubGameView } from './HubGameView';
+export { default as HubGameView } from "./HubGameView";

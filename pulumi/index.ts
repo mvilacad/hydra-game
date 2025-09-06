@@ -1,11 +1,11 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
-import { InstanceArgs } from "@pulumi/aws/ec2";
+import type { InstanceArgs } from "@pulumi/aws/ec2";
 
 // Configure AWS provider to use local AWS CLI credentials
 const provider = new aws.Provider("aws-provider", {
-    region: aws.config.region || "us-east-1", // Uses AWS CLI default region
-    // Pulumi will automatically use AWS CLI credentials from ~/.aws/credentials
+	region: aws.config.region || "us-east-1", // Uses AWS CLI default region
+	// Pulumi will automatically use AWS CLI credentials from ~/.aws/credentials
 });
 
 // Read configuration values from Pulumi.dev.yaml
@@ -20,48 +20,57 @@ const keyPairName = config.get("keyPairName"); // Optional - only set if you hav
 
 // Create a security group to allow HTTP access (and SSH if key pair is configured)
 const securityGroupIngress = [
-    {
-        protocol: "tcp",
-        fromPort: 5000,
-        toPort: 5000,
-        cidrBlocks: ["0.0.0.0/0"],
-    },
+	{
+		protocol: "tcp",
+		fromPort: 5000,
+		toPort: 5000,
+		cidrBlocks: ["0.0.0.0/0"],
+	},
 ];
 
 // Add SSH access only if key pair is configured
 if (keyPairName) {
-    securityGroupIngress.push({
-        protocol: "tcp",
-        fromPort: 22,
-        toPort: 22,
-        cidrBlocks: ["0.0.0.0/0"],
-    });
+	securityGroupIngress.push({
+		protocol: "tcp",
+		fromPort: 22,
+		toPort: 22,
+		cidrBlocks: ["0.0.0.0/0"],
+	});
 }
 
-const securityGroup = new aws.ec2.SecurityGroup("hydra-game-sg", {
-    description: keyPairName ? "Allow HTTP and SSH access to Hydra Game" : "Allow HTTP access to Hydra Game",
-    ingress: securityGroupIngress,
-    egress: [
-        {
-            protocol: "-1",
-            fromPort: 0,
-            toPort: 0,
-            cidrBlocks: ["0.0.0.0/0"],
-        },
-    ],
-}, { provider });
+const securityGroup = new aws.ec2.SecurityGroup(
+	"hydra-game-sg",
+	{
+		description: keyPairName
+			? "Allow HTTP and SSH access to Hydra Game"
+			: "Allow HTTP access to Hydra Game",
+		ingress: securityGroupIngress,
+		egress: [
+			{
+				protocol: "-1",
+				fromPort: 0,
+				toPort: 0,
+				cidrBlocks: ["0.0.0.0/0"],
+			},
+		],
+	},
+	{ provider },
+);
 
 // Get the latest Amazon Linux 2 AMI
-const ami = aws.ec2.getAmi({
-    filters: [
-        {
-            name: "name",
-            values: ["amzn2-ami-hvm-*-x86_64-gp2"],
-        },
-    ],
-    owners: ["amazon"],
-    mostRecent: true,
-}, { provider });
+const ami = aws.ec2.getAmi(
+	{
+		filters: [
+			{
+				name: "name",
+				values: ["amzn2-ami-hvm-*-x86_64-gp2"],
+			},
+		],
+		owners: ["amazon"],
+		mostRecent: true,
+	},
+	{ provider },
+);
 
 // Startup script for the EC2 instance
 const userData = `#!/bin/bash
@@ -163,21 +172,23 @@ echo "🌐 Acesse a aplicação em: http://$(curl -s http://169.254.169.254/late
 
 // Create the EC2 instance
 const instanceConfig: InstanceArgs = {
-    ami: ami.then(ami => ami.id),
-    instanceType: instanceType,
-    securityGroups: [securityGroup.name],
-    userData: userData,
-    tags: {
-        Name: "hydra-game",
-    },
+	ami: ami.then((ami) => ami.id),
+	instanceType: instanceType,
+	securityGroups: [securityGroup.name],
+	userData: userData,
+	tags: {
+		Name: "hydra-game",
+	},
 };
 
 // Only add keyName if a key pair is configured
 if (keyPairName) {
-    instanceConfig.keyName = keyPairName;
+	instanceConfig.keyName = keyPairName;
 }
 
-const instance = new aws.ec2.Instance("hydra-game-instance", instanceConfig, { provider });
+const instance = new aws.ec2.Instance("hydra-game-instance", instanceConfig, {
+	provider,
+});
 
 // Export the public IP and DNS of the instance
 export const publicIp = instance.publicIp;
@@ -185,6 +196,6 @@ export const publicDns = instance.publicDns;
 
 // Export connection info
 export const appUrl = pulumi.interpolate`http://${instance.publicIp}:5000`;
-export const sshCommand = keyPairName 
-    ? pulumi.interpolate`ssh -i ~/.ssh/${keyPairName}.pem ec2-user@${instance.publicDns}`
-    : "SSH not configured - no key pair specified";
+export const sshCommand = keyPairName
+	? pulumi.interpolate`ssh -i ~/.ssh/${keyPairName}.pem ec2-user@${instance.publicDns}`
+	: "SSH not configured - no key pair specified";

@@ -1,2 +1,2 @@
-export { WaitingScreen } from './WaitingScreen';
-export { EndedScreen } from './EndedScreen';
+export { WaitingScreen } from "./WaitingScreen";
+export { EndedScreen } from "./EndedScreen";

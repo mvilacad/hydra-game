@@ -1,2 +1,2 @@
-export { LoadingScreen } from './LoadingScreen';
-export { ConnectionStatus } from './ConnectionStatus';
+export { LoadingScreen } from "./LoadingScreen";
+export { ConnectionStatus } from "./ConnectionStatus";
