@@ -4,9 +4,9 @@ import { useEffect } from "react";
 import "@fontsource/inter";
 import "./index.css";
 
-// Import pages
-import MobileApp from "./pages/MobileApp";
-import HubDisplay from "./pages/HubDisplay";
+// Import views
+import { MobileGameView } from "./views/mobile";
+import { HubGameView } from "./views/hub";
 
 // Create query client
 const queryClient = new QueryClient({
@@ -36,13 +36,13 @@ function AppRouter() {
 
   // Render based on view parameter
   if (view === 'mobile') {
-    return <MobileApp />;
+    return <MobileGameView />;
   } else if (view === 'hub') {
-    return <HubDisplay />;
+    return <HubGameView />;
   }
 
   // Default to mobile for small screens, hub for large
-  return window.innerWidth < 768 ? <MobileApp /> : <HubDisplay />;
+  return window.innerWidth < 768 ? <MobileGameView /> : <HubGameView />;
 }
 
 // Main App component

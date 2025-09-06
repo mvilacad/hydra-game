@@ -1,20 +1,20 @@
 @import "tailwindcss";
 
 @theme {
-  /* Core theme colors */
-  --color-background: 0 0% 11%; /* #1b1b1b */
+  /* Core theme colors - Figma Design */
+  --color-background: 0 0% 0%; /* Pure black like Figma */
   --color-foreground: 0 0% 100%;
-  --color-card: 0 0% 11%; /* #1b1b1b */
+  --color-card: 0 0% 6%; /* Dark gray for cards */
   --color-card-foreground: 0 0% 100%;
-  --color-popover: 0 0% 11%; /* #1b1b1b */
+  --color-popover: 0 0% 6%;
   --color-popover-foreground: 0 0% 100%;
-  --color-primary: 358 97% 50%; /* #fe040c */
+  --color-primary: 0 84% 57%; /* Red accent from Figma */
   --color-primary-foreground: 0 0% 100%;
-  --color-secondary: 0 0% 15%;
+  --color-secondary: 262 83% 58%; /* Purple from badges */
   --color-secondary-foreground: 0 0% 100%;
   --color-muted: 0 0% 15%;
   --color-muted-foreground: 0 0% 65%;
-  --color-accent: 0 0% 15%;
+  --color-accent: 262 83% 58%; /* Purple accent */
   --color-accent-foreground: 0 0% 100%;
   --color-destructive: 0 84% 60%;
   --color-destructive-foreground: 0 0% 100%;
@@ -154,4 +154,56 @@
 .border-mmo {
   border-style: solid;
   border-image: linear-gradient(45deg, transparent, rgba(239, 68, 68, 0.5), transparent) 1;
+}
+
+/* Figma-inspired game styling */
+.game-background {
+  background: radial-gradient(circle at center, rgba(20,20,20,1) 0%, rgba(0,0,0,1) 100%);
+  position: relative;
+}
+
+.game-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(147, 51, 234, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(239, 68, 68, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.game-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+.badge-purple {
+  background: hsl(var(--color-secondary));
+  color: hsl(var(--color-secondary-foreground));
+  border: 1px solid hsl(var(--color-secondary) / 0.3);
+  border-radius: 8px;
+  padding: 4px 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.title-large {
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 700;
+  color: white;
+  line-height: 1.1;
+}
+
+.subtitle-red {
+  color: hsl(var(--color-primary));
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  font-weight: 600;
 }

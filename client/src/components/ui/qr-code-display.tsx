@@ -43,15 +43,15 @@ export function QRCodeDisplay({ className, onStartBattle, canStart = false, play
   }, []);
 
   return (
-    <Card className={cn("bg-gray-900/95 border-red-500/30 backdrop-blur-sm max-w-sm mx-auto", className)}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-xl flex items-center gap-2 text-red-400">
-          <Smartphone className="w-5 h-5" />
-          Entrar na Batalha
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
+    <div className={cn("game-card max-w-sm mx-auto p-6", className)}>
+      <div className="space-y-4">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="badge-purple">
+            <Smartphone className="w-4 h-4 mr-2 inline" />
+            Batalha
+          </div>
+          <h3 className="title-large">Entrar!</h3>
+        </div>
         {/* QR Code */}
         <div className="flex justify-center">
           <div className="relative p-3 bg-white rounded-lg">
@@ -137,7 +137,7 @@ export function QRCodeDisplay({ className, onStartBattle, canStart = false, play
             </p>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

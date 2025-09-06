@@ -2,8 +2,8 @@ import { useBattle } from '@/lib/stores/useBattle';
 import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Suspense, useEffect, useState } from 'react';
-import { Hydra3D } from './Hydra3D';
-import { PlayerAvatar } from './PlayerAvatar';
+import { Hydra3D } from '../Entities/Hydra3D';
+import { PlayerAvatar } from '../Entities/PlayerAvatar';
 
 interface BattleSceneProps {
   className?: string;
@@ -262,34 +262,6 @@ export function BattleScene({ className }: BattleSceneProps) {
             />
           ))}
 
-          {/* Attack Effects */}
-          {/* {attacks.map((attack) => {
-            const playerIndex = players.findIndex(p => p.id === attack.playerId);
-            if (playerIndex === -1) return null;
-
-            return (
-              <AttackEffect
-                key={attack.id}
-                type={attack.type}
-                startPosition={playerPositions[playerIndex]}
-                targetPosition={[0, 2, 0]}
-                onComplete={() => clearAttack(attack.id)}
-              />
-            );
-          })} */}
-
-          {/* Particle Effects */}
-          {/* {particles.map((particle) => (
-            <ParticleSystem
-              key={particle.id}
-              type={particle.type}
-              position={particle.position}
-              count={particle.type === 'explosion' ? 200 : 50}
-              intensity={1}
-              duration={2}
-              autoStart={true}
-            />
-          ))} */}
 
           {/* Enhanced Camera Controls - static target for better performance */}
           <OrbitControls
