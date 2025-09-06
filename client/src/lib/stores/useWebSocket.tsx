@@ -1,189 +1,194 @@
-import { io, type Socket } from "socket.io-client";
+import type { WebSocketMessage } from "@shared/types";
 import { create } from "zustand";
-import { useBattle } from "./useBattle";
+import { devtools } from "zustand/middleware";
+import type {
+	ConnectionStatus,
+	WebSocketEventHandlers,
+	WebSocketStore,
+} from "./types/websocketTypes";
+import { createConnection, validateConnection } from "./utils/websocketConnection";
+import { WebSocketEventHandlers as EventHandlers } from "./utils/websocketEventHandlers";
 
-interface WebSocketState {
-	socket: Socket | null;
-	isConnected: boolean;
-	connectionStatus: "connecting" | "connected" | "disconnected" | "error";
-	lastMessage: any;
-
-	// Actions
-	connect: () => void;
-	disconnect: () => void;
-	sendMessage: (message: any) => void;
-	reconnect: () => void;
-}
-
-export const useWebSocket = create<WebSocketState>((set, get) => ({
+const INITIAL_STATE = {
 	socket: null,
 	isConnected: false,
-	connectionStatus: "disconnected",
+	connectionStatus: "disconnected" as ConnectionStatus,
 	lastMessage: null,
+	error: null,
+	reconnectAttempts: 0,
+	maxReconnectAttempts: 5,
+} as const;
 
-	connect: () => {
-		const { socket } = get();
+export const useWebSocket = create<WebSocketStore>()(
+	devtools(
+		(set, get) => {
+			let eventHandlers: EventHandlers | null = null;
 
-		// Don't create multiple connections
-		if (socket && socket.connected) {
-			return;
-		}
-
-		set({ connectionStatus: "connecting" });
-
-		try {
-			// Create Socket.IO connection
-			const newSocket = io({
-				autoConnect: true,
-				reconnection: true,
-				reconnectionDelay: 2000,
-				reconnectionDelayMax: 10000,
-				reconnectionAttempts: 5,
-				timeout: 20000,
-				forceNew: true,
-			});
-
-			// Connection events
-			newSocket.on("connect", () => {
-				console.log("Socket.IO connected:", newSocket.id);
+			const handleConnect = () => {
 				set({
-					socket: newSocket,
 					isConnected: true,
 					connectionStatus: "connected",
+					error: null,
+					reconnectAttempts: 0,
 				});
-			});
+			};
 
-			newSocket.on("connect_error", (error) => {
-				console.error("Socket.IO connection error:", error);
-				set({ connectionStatus: "error" });
-			});
-
-			newSocket.on("disconnect", (reason) => {
-				console.log("Socket.IO disconnected:", reason);
+			const handleDisconnect = (reason: string) => {
 				set({
 					isConnected: false,
 					connectionStatus: "disconnected",
+					error: reason.includes("error") ? reason : null,
 				});
-			});
+			};
 
-			// Game event handlers
-			const battleStore = useBattle.getState();
+			const handleConnectError = (error: Error) => {
+				set({
+					connectionStatus: "error",
+					error: error.message,
+					isConnected: false,
+				});
+			};
 
-			newSocket.on("game_state_update", (data) => {
-				console.log("Game state updated:", data);
-				if (data.players) {
-					data.players.forEach((player: any) => battleStore.addPlayer(player));
-				}
-				if (data.phase) {
-					battleStore.setGamePhase(data.phase);
-				}
-				if (typeof data.hydraHealth === "number") {
-					battleStore.setHydraHealth(data.hydraHealth);
-				}
-				if (data.currentQuestion) {
-					battleStore.setCurrentQuestion(data.currentQuestion);
-				}
-			});
+			const handleReconnect = (attemptNumber: number) => {
+				set({
+					connectionStatus: "connected",
+					isConnected: true,
+					reconnectAttempts: attemptNumber,
+					error: null,
+				});
+			};
 
-			newSocket.on("player_joined", (data) => {
-				console.log("Player joined:", data.player);
-				if (data.player) {
-					battleStore.addPlayer(data.player);
-				}
-			});
+			const handleReconnectError = (error: Error) => {
+				set((state) => ({
+					connectionStatus: "reconnecting",
+					reconnectAttempts: state.reconnectAttempts + 1,
+					error: error.message,
+				}));
+			};
 
-			newSocket.on("player_list_update", (data) => {
-				if (data.type === "player_joined" && data.player) {
-					battleStore.addPlayer(data.player);
-				} else if (data.type === "player_left" && data.playerId) {
-					battleStore.removePlayer(data.playerId);
-				}
-			});
+			const handleMaxReconnectAttempts = () => {
+				set({
+					connectionStatus: "error",
+					error: "Maximum reconnection attempts reached",
+					isConnected: false,
+				});
+			};
 
-			newSocket.on("player_attack", (data) => {
-				console.log("Player attack:", data);
-				const { playerId, attackType, damage, isCorrect, points } = data;
+			const eventHandlerConfig: Partial<WebSocketEventHandlers> = {
+				onConnect: handleConnect,
+				onDisconnect: handleDisconnect,
+				onConnectError: handleConnectError,
+				onReconnect: handleReconnect,
+				onReconnectError: handleReconnectError,
+				onMaxReconnectAttempts: handleMaxReconnectAttempts,
+			};
 
-				// Update player score if correct
-				if (isCorrect && points) {
-					const player = battleStore.players.find((p) => p.id === playerId);
-					if (player) {
-						battleStore.updatePlayer(playerId, {
-							score: player.score + points,
+			return {
+				...INITIAL_STATE,
+
+				connect: () => {
+					const { socket: currentSocket } = get();
+
+					// Prevent duplicate connections
+					if (validateConnection(currentSocket)) {
+						console.log("WebSocket already connected");
+						return;
+					}
+
+					set({ connectionStatus: "connecting", error: null });
+
+					try {
+						const newSocket = createConnection({}, eventHandlerConfig);
+
+						// Setup game event handlers
+						eventHandlers = new EventHandlers(newSocket);
+
+						set({ socket: newSocket });
+					} catch (error) {
+						console.error("Failed to create WebSocket connection:", error);
+						set({
+							connectionStatus: "error",
+							error:
+								error instanceof Error ? error.message : "Connection failed",
 						});
 					}
-				}
+				},
 
-				// Add attack effect if successful
-				if (isCorrect && attackType !== "miss") {
-					battleStore.addAttack({
-						id: `${playerId}-${Date.now()}`,
-						playerId,
-						type: attackType,
-						damage: damage || 100,
-						timestamp: Date.now(),
-					});
-				}
-			});
+				disconnect: () => {
+					const { socket } = get();
 
-			newSocket.on("question_start", (question) => {
-				console.log("Question started:", question);
-				battleStore.setCurrentQuestion(question);
-				battleStore.setGamePhase("battle");
-			});
+					if (socket) {
+						eventHandlers?.cleanup();
+						eventHandlers = null;
 
-			newSocket.on("question_end", () => {
-				console.log("Question ended");
-				battleStore.setCurrentQuestion(null);
-			});
+						socket.disconnect();
+						set({
+							socket: null,
+							isConnected: false,
+							connectionStatus: "disconnected",
+							error: null,
+						});
+					}
+				},
 
-			newSocket.on("game_phase_change", (data) => {
-				console.log("Game phase changed:", data.phase);
-				battleStore.setGamePhase(data.phase);
-			});
+				reconnect: () => {
+					const { disconnect, connect } = get();
 
-			newSocket.on("game_reset", () => {
-				console.log("Game reset");
-				battleStore.resetHydra();
-				battleStore.clearAllAttacks();
-			});
+					set({ connectionStatus: "reconnecting" });
 
-			set({ socket: newSocket });
-		} catch (error) {
-			console.error("Error creating Socket.IO connection:", error);
-			set({ connectionStatus: "error" });
-		}
-	},
+					disconnect();
 
-	disconnect: () => {
-		const { socket } = get();
-		if (socket) {
-			socket.disconnect();
-			set({
-				socket: null,
-				isConnected: false,
-				connectionStatus: "disconnected",
-			});
-		}
-	},
+					// Wait before reconnecting
+					setTimeout(() => {
+						connect();
+					}, 1000);
+				},
 
-	sendMessage: (message) => {
-		const { socket, isConnected } = get();
-		if (socket && isConnected) {
-			try {
-				socket.emit(message.type, message.data);
-				console.log("Socket.IO message sent:", message);
-			} catch (error) {
-				console.error("Error sending Socket.IO message:", error);
-			}
-		} else {
-			console.warn("Cannot send message: Socket.IO not connected");
-		}
-	},
+				sendMessage: <T extends WebSocketMessage>(message: T): boolean => {
+					const { socket } = get();
 
-	reconnect: () => {
-		const { disconnect, connect } = get();
-		disconnect();
-		setTimeout(connect, 1000);
-	},
-}));
+					if (!validateConnection(socket)) {
+						console.warn(
+							"Cannot send message: WebSocket not connected",
+							message,
+						);
+						set({ error: "Not connected to server" });
+						return false;
+					}
+
+					try {
+						socket.emit(message.type as any, message.data);
+						console.log("WebSocket message sent:", message);
+
+						set({
+							lastMessage: message,
+							error: null,
+						});
+
+						return true;
+					} catch (error) {
+						const errorMessage =
+							error instanceof Error ? error.message : "Failed to send message";
+						console.error("Error sending WebSocket message:", error);
+
+						set({ error: errorMessage });
+						return false;
+					}
+				},
+
+				clearError: () => {
+					set({ error: null });
+				},
+			};
+		},
+		{
+			name: "websocket-store",
+			partialize: (state: WebSocketStore) => ({
+				// Only persist non-volatile state
+				connectionStatus: state.connectionStatus,
+				error: state.error,
+				reconnectAttempts: state.reconnectAttempts,
+			}),
+		},
+	),
+);
