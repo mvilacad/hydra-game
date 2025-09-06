@@ -1,22 +1,21 @@
 // Components
-export { CharacterIcon } from "./components/CharacterIcon";
+
 export { CharacterDisplay } from "./components/CharacterDisplay";
+export { CharacterIcon } from "./components/CharacterIcon";
 
 // Hooks
 export { useCharacterTheme } from "./hooks/useCharacterTheme";
-
-// Utils
-export {
-	getCharacterTheme,
-	getDefaultTheme,
-	getAllCharacters,
-	getCharacterDisplayName,
-} from "./utils/characterThemes";
-
 // Types
 export type {
-	CharacterType,
-	CharacterTheme,
 	Character,
 	CharacterConfig,
+	CharacterTheme,
+	CharacterType,
 } from "./types/characterTypes";
+// Utils
+export {
+	getAllCharacters,
+	getCharacterDisplayName,
+	getCharacterTheme,
+	getDefaultTheme,
+} from "./utils/characterThemes";

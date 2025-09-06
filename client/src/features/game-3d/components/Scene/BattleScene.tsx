@@ -1,7 +1,7 @@
-import { useBattle } from "@/lib/stores/useBattle";
 import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useEffect, useState } from "react";
+import { useBattle } from "@/lib/stores/useBattle";
 import { Hydra3D } from "../Entities/Hydra3D";
 import { PlayerAvatar } from "../Entities/PlayerAvatar";
 

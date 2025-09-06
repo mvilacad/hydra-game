@@ -1,9 +1,8 @@
+import type { Player } from "@shared/types";
 import { Card, CardContent } from "@/components/ui/card";
+import type { CharacterType } from "@/features/characters";
 import { CharacterIcon, useCharacterTheme } from "@/features/characters";
 import { cn } from "@/lib/utils";
-import type { CharacterType } from "@/features/characters";
-
-import type { Player } from "@shared/types";
 
 interface ResultsScreenProps {
 	character: CharacterType;

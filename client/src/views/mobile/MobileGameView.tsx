@@ -1,22 +1,21 @@
-import { useState, useEffect } from "react";
-import { useWebSocket } from "@/lib/stores/useWebSocket";
-import { useBattle } from "@/lib/stores/useBattle";
+import type { Player } from "@shared/types";
+import { useEffect, useState } from "react";
+import { ConnectionStatus } from "@/components/feedback/ConnectionStatus";
+import { LoadingScreen } from "@/components/feedback/LoadingScreen";
+import { GameLayout } from "@/components/layout/GameLayout";
 import {
-	useBattlePhases,
-	useAnswerSubmission,
 	PreparationScreen,
 	ResultsScreen,
+	useAnswerSubmission,
+	useBattlePhases,
 } from "@/features/battle";
-import { GameLayout } from "@/components/layout/GameLayout";
-import { LoadingScreen } from "@/components/feedback/LoadingScreen";
-import { ConnectionStatus } from "@/components/feedback/ConnectionStatus";
-import { WaitingScreen } from "./components/WaitingScreen";
-import { EndedScreen } from "./components/EndedScreen";
+import type { CharacterType } from "@/features/characters";
 import { PlayerSetup } from "@/features/player-setup";
 import { Question } from "@/features/questions";
-import type { CharacterType } from "@/features/characters";
-
-import type { Player } from "@shared/types";
+import { useBattle } from "@/lib/stores/useBattle";
+import { useWebSocket } from "@/lib/stores/useWebSocket";
+import { EndedScreen } from "./components/EndedScreen";
+import { WaitingScreen } from "./components/WaitingScreen";
 
 export const MobileGameView: React.FC = () => {
 	const [currentPlayer, setCurrentPlayer] = useState<{

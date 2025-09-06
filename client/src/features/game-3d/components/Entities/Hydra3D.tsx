@@ -1,7 +1,7 @@
-import { useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { animated, config, useSpring } from "@react-spring/three";
 import { Center, useGLTF } from "@react-three/drei";
-import { animated, useSpring, config } from "@react-spring/three";
+import { useFrame } from "@react-three/fiber";
+import { useRef } from "react";
 import type * as THREE from "three";
 import { useBattle } from "@/lib/stores/useBattle";
 

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { BattleHUD } from "@/components/ui/battle-hud";
 import { CombatLog } from "@/components/ui/combat-log";
 import { DamageMeter } from "@/components/ui/damage-meter";
@@ -5,7 +6,6 @@ import { QRCodeDisplay } from "@/components/ui/qr-code-display";
 import { BattleScene } from "@/features/game-3d";
 import { useBattle } from "@/lib/stores/useBattle";
 import { useWebSocket } from "@/lib/stores/useWebSocket";
-import { useEffect } from "react";
 
 export default function HubDisplay() {
 	const { connect, isConnected, sendMessage } = useWebSocket();

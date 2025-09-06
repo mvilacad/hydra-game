@@ -1,5 +1,5 @@
-import { Server as SocketIOServer } from "socket.io";
 import type { Server as HTTPServer } from "http";
+import { Server as SocketIOServer } from "socket.io";
 
 interface Player {
 	id: string;

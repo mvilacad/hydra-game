@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
+import type { CharacterType } from "@/features/characters";
 import { CharacterDisplay } from "@/features/characters";
 import { cn } from "@/lib/utils";
-import type { CharacterType } from "@/features/characters";
 
 interface PreparationScreenProps {
 	character: CharacterType;

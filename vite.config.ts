@@ -1,8 +1,8 @@
-import { defineConfig } from "vite";
+import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import react from "@vitejs/plugin-react";
 import path, { dirname } from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { fileURLToPath } from "url";
+import { defineConfig } from "vite";
 import glsl from "vite-plugin-glsl";
 
 const __filename = fileURLToPath(import.meta.url);

@@ -1,9 +1,9 @@
-import { useRef } from "react";
-import { useFrame } from "@react-three/fiber";
-import { useSpring, animated } from "@react-spring/three";
-import * as THREE from "three";
+import { animated, useSpring } from "@react-spring/three";
 import { Text } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
 import type { Player } from "@shared/types";
+import { useRef } from "react";
+import * as THREE from "three";
 
 interface PlayerAvatarProps {
 	player: Player;

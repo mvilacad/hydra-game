@@ -1,6 +1,6 @@
 import { useMemo } from "react";
+import type { CharacterTheme, CharacterType } from "../types/characterTypes";
 import { getCharacterTheme, getDefaultTheme } from "../utils/characterThemes";
-import type { CharacterType, CharacterTheme } from "../types/characterTypes";
 
 export const useCharacterTheme = (
 	characterType?: CharacterType,

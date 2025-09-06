@@ -1,8 +1,8 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type {
 	BattlePhase,
-	BattleState,
 	BattlePhaseTransition,
+	BattleState,
 } from "../types/battleTypes";
 
 const INITIAL_BATTLE_STATE: BattleState = {

@@ -1,17 +1,17 @@
-import {
-	BrowserRouter as Router,
-	Routes,
-	Route,
-	useSearchParams,
-} from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
+import {
+	Route,
+	BrowserRouter as Router,
+	Routes,
+	useSearchParams,
+} from "react-router-dom";
 import "@fontsource/inter";
 import "./index.css";
 
+import { HubGameView } from "./views/hub";
 // Import views
 import { MobileGameView } from "./views/mobile";
-import { HubGameView } from "./views/hub";
 
 // Create query client
 const queryClient = new QueryClient({

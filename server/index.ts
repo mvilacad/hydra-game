@@ -1,4 +1,8 @@
-import express, { type Request, type Response, type NextFunction } from "express";
+import express, {
+	type NextFunction,
+	type Request,
+	type Response,
+} from "express";
 import { registerRoutes } from "./routes";
 
 function log(message: string, source = "express") {
@@ -19,7 +23,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use((req, res, next) => {
 	const start = Date.now();
 	const path = req.path;
-	let capturedJsonResponse: Record<string, any> | undefined ;
+	let capturedJsonResponse: Record<string, any> | undefined;
 
 	const originalResJson = res.json;
 	res.json = (bodyJson, ...args) => {

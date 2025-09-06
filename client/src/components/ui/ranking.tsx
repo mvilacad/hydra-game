@@ -1,7 +1,7 @@
 import type { Player } from "@shared/types";
-import { Card, CardContent, CardHeader, CardTitle } from "./card";
+import { Shield, Star, Sword, Target, Trophy, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Trophy, Star, Sword, Shield, Target, Zap } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "./card";
 
 interface RankingProps {
 	players: Player[];

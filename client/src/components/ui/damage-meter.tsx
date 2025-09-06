@@ -1,17 +1,17 @@
-import type { Player, Attack } from "@shared/types";
-import { Card, CardContent, CardHeader, CardTitle } from "./card";
-import { cn } from "@/lib/utils";
+import type { Attack, Player } from "@shared/types";
 import {
+	Award,
+	Clock,
+	Flame,
+	Shield,
 	Sword,
 	Target,
-	Zap,
-	Shield,
-	Flame,
 	TrendingUp,
-	Clock,
-	Award,
+	Zap,
 } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "./card";
 
 interface DamageMeterProps {
 	players: Player[];

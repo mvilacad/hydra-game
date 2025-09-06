@@ -1,16 +1,16 @@
 import type { Attack, Player } from "@shared/types";
-import { Card, CardContent, CardHeader, CardTitle } from "./card";
-import { cn } from "@/lib/utils";
 import {
+	AlertTriangle,
+	ScrollText,
+	Shield,
+	Skull,
 	Sword,
 	Target,
 	Zap,
-	Shield,
-	Skull,
-	AlertTriangle,
-	ScrollText,
 } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "./card";
 
 interface CombatLogProps {
 	attacks: Attack[];

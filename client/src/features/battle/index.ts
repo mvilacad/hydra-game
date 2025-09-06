@@ -1,17 +1,16 @@
 // Components
 export { PreparationScreen } from "./components/PreparationScreen";
 export { ResultsScreen } from "./components/ResultsScreen";
-
+export { useAnswerSubmission } from "./hooks/useAnswerSubmission";
 // Hooks
 export { useBattlePhases } from "./hooks/useBattlePhases";
-export { useAnswerSubmission } from "./hooks/useAnswerSubmission";
 
 // Types
 export type {
+	AnswerSubmission,
 	BattlePhase,
+	BattlePhaseTransition,
+	BattleState,
 	BattleTimer,
 	PreparationTimer,
-	BattleState,
-	AnswerSubmission,
-	BattlePhaseTransition,
 } from "./types/battleTypes";

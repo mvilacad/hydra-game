@@ -1,19 +1,19 @@
 import { type GameState, Player } from "@shared/types";
-import { Card, CardContent } from "./card";
-import { cn } from "@/lib/utils";
 import {
-	Sword,
-	Shield,
-	Users,
+	Activity,
+	AlertTriangle,
 	Clock,
+	Heart,
+	Shield,
+	Sword,
 	Target,
 	TrendingUp,
-	Activity,
+	Users,
 	Wifi,
 	WifiOff,
-	Heart,
-	AlertTriangle,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Card, CardContent } from "./card";
 
 interface BattleHUDProps {
 	gameState: GameState;

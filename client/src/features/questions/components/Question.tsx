@@ -1,18 +1,18 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
-	Clock,
 	CheckCircle,
-	XCircle,
-	Sword,
-	Zap,
-	Target,
-	Shield,
+	Clock,
 	Flame,
+	Shield,
 	Sparkles,
+	Sword,
+	Target,
+	XCircle,
+	Zap,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface QuestionProps {
 	question: {

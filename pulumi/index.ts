@@ -1,6 +1,6 @@
-import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 import type { InstanceArgs } from "@pulumi/aws/ec2";
+import * as pulumi from "@pulumi/pulumi";
 
 // Configure AWS provider to use local AWS CLI credentials
 const provider = new aws.Provider("aws-provider", {

@@ -1,5 +1,5 @@
+import { Shield, Sword, Target, Zap } from "lucide-react";
 import React from "react";
-import { Sword, Zap, Target, Shield } from "lucide-react";
 import type {
 	CharacterConfig,
 	CharacterTheme,

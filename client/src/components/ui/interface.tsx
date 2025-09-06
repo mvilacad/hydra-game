@@ -1,9 +1,9 @@
+import { RotateCw, Trophy, Volume2, VolumeX } from "lucide-react";
 import { useEffect } from "react";
-import { useGame } from "@/lib/stores/useGame";
 import { useAudio } from "@/lib/stores/useAudio";
+import { useGame } from "@/lib/stores/useGame";
 import { Button } from "./button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./card";
-import { VolumeX, Volume2, RotateCw, Trophy } from "lucide-react";
 
 export function Interface() {
 	const restart = useGame((state) => state.restart);

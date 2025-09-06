@@ -1,7 +1,6 @@
+import type { Player } from "@shared/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Ranking } from "@/components/ui/ranking";
-
-import type { Player } from "@shared/types";
 
 interface EndedScreenProps {
 	isVictory: boolean;

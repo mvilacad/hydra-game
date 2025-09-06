@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { Pause, Play, Smartphone, Users, Wifi } from "lucide-react";
 import QRCode from "qrcode";
-import { Card, CardContent, CardHeader, CardTitle } from "./card";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Smartphone, Wifi, Users, Play, Pause } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "./card";
 
 interface QRCodeDisplayProps {
 	className?: string;

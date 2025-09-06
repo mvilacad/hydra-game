@@ -1,7 +1,7 @@
-import { CharacterIcon } from "./CharacterIcon";
-import { useCharacterTheme } from "../hooks/useCharacterTheme";
 import { cn } from "@/lib/utils";
+import { useCharacterTheme } from "../hooks/useCharacterTheme";
 import type { CharacterType } from "../types/characterTypes";
+import { CharacterIcon } from "./CharacterIcon";
 
 interface CharacterDisplayProps {
 	character: CharacterType;
