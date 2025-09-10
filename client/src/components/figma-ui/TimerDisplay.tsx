@@ -1,24 +1,51 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { usePhaseTimestamps } from "@/lib/stores/useGameStore";
 
 interface TimerDisplayProps {
-	timeLeft: number;
+	timeLeft?: number; // LEGACY: will be overridden by server time if available
 	className?: string;
 	variant?: "default" | "danger";
+	useServerTime?: boolean; // Use server-authoritative timestamps
 }
 
 export function TimerDisplay({
-	timeLeft,
+	timeLeft = 0,
 	className,
 	variant = "default",
+	useServerTime = true,
 }: TimerDisplayProps) {
+	const { phaseEndsAt } = usePhaseTimestamps();
+	const [currentTimeLeft, setCurrentTimeLeft] = useState(timeLeft);
+
+	useEffect(() => {
+		let interval: NodeJS.Timeout | null = null;
+
+		if (useServerTime && phaseEndsAt) {
+			// Server-authoritative timing
+			interval = setInterval(() => {
+				const now = Date.now();
+				const endsAt = new Date(phaseEndsAt).getTime();
+				const remaining = Math.max(0, Math.ceil((endsAt - now) / 1000));
+				setCurrentTimeLeft(remaining);
+			}, 100); // Update frequently for smooth display
+		} else {
+			// Use provided timeLeft
+			setCurrentTimeLeft(timeLeft);
+		}
+
+		return () => {
+			if (interval) clearInterval(interval);
+		};
+	}, [phaseEndsAt, useServerTime, timeLeft]);
+
 	const formatTime = (seconds: number) => {
 		const mins = Math.floor(seconds / 60);
 		const secs = seconds % 60;
 		return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 	};
 
-	const isDanger = variant === "danger" || timeLeft <= 10;
+	const isDanger = variant === "danger" || currentTimeLeft <= 10;
 
 	return (
 		<div className={cn("flex flex-col items-center", className)}>
@@ -34,7 +61,7 @@ export function TimerDisplay({
 						: "bg-gray-900/80 border-gray-700/50 text-white shadow-lg"
 				)}
 			>
-				{formatTime(timeLeft)}
+				{formatTime(currentTimeLeft)}
 			</div>
 		</div>
 	);

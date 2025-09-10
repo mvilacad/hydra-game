@@ -5,13 +5,12 @@ import {
 	PreparationScreen,
 	ResultsScreen,
 	useAnswerSubmission,
-	useBattlePhases,
 } from "@/features/battle";
 import type { CharacterType } from "@/features/characters";
 import { PlayerSetup } from "@/features/player-setup";
 import { Question } from "@/features/questions";
 import { RoomJoin } from "@/features/room-management";
-import { useGameStore } from "@/lib/stores/useGameStore";
+import { useGameStore, useGamePhase, usePhaseTimestamps } from "@/lib/stores/useGameStore";
 import { useWebSocket } from "@/lib/stores/useWebSocket";
 import type { Player } from "@shared/types";
 import { useEffect, useState } from "react";
@@ -63,15 +62,24 @@ export const MobileGameView: React.FC = () => {
 	} = useGameStore();
 
 	const roomCode = game?.code;
+	const currentPhase = useGamePhase();
+	const { phaseEndsAt } = usePhaseTimestamps();
 
-	const { battleState, transitionToPhase, startPreparationPhase, resetBattle } =
-		useBattlePhases();
+	// Server-authoritative timing - mock battleState para compatibilidade temporária
+	const battleState = {
+		phase: currentPhase === "playing" ? "question" : "waiting",
+		preparationTimer: { count: 0 },
+	};
+	
+	// Mock functions para compatibilidade temporária
+	const transitionToPhase = () => console.log("Transition handled by server");
+	const startPreparationPhase = () => console.log("Preparation handled by server");
+	const resetBattle = () => console.log("Reset handled by server");
 
 	const { submitAnswer } = useAnswerSubmission({
 		onSubmissionComplete: () => {
-			transitionToPhase("results", 1000, () => {
-				setTimeout(() => transitionToPhase("waiting"), 2000);
-			});
+			// Server-authoritative timing - transições são controladas pelo servidor
+			console.log("Answer submitted - server will control next phase");
 		},
 	});
 

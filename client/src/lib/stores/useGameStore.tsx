@@ -1,6 +1,6 @@
 
 import type { Game, Player } from "@shared/schema";
-import type { Attack } from "@shared/types";
+import type { Attack, AuthoritativeGameState, AuthoritativeGamePhase } from "@shared/types";
 import { create } from "zustand";
 import { devtools, persist, subscribeWithSelector } from "zustand/middleware";
 
@@ -54,9 +54,12 @@ interface GameStoreState {
 	hydraHealth: number;
 	maxHydraHealth: number;
 	currentQuestion: any; // Consider defining a proper type for Question
-	questionTimeLeft: number;
 	attacks: Attack[];
 	lastAttack: Attack | null;
+
+	// Server-authoritative timestamps
+	phaseStartsAt: string | null;
+	phaseEndsAt: string | null;
 
 	// Actions
 	// Room actions from useRoom
@@ -81,9 +84,12 @@ interface GameStoreState {
 	damageHydra: (damage: number) => void;
 	setHydraHealth: (health: number) => void;
 	setCurrentQuestion: (question: any) => void;
-	setQuestionTimeLeft: (time: number) => void;
 	addAttack: (attack: Attack) => void;
 	clearAllAttacks: () => void;
+
+	// Server-authoritative actions
+	handleGameStateUpdate: (state: AuthoritativeGameState) => void;
+	setPhaseTimestamps: (startsAt: string, endsAt: string) => void;
 
 	// Utility actions
 	setError: (error: string | null) => void;
@@ -122,9 +128,10 @@ export const useGameStore = create<GameStoreState>()(
 					hydraHealth: 1000,
 					maxHydraHealth: 1000,
 					currentQuestion: null,
-					questionTimeLeft: 30,
 					attacks: [],
 					lastAttack: null,
+					phaseStartsAt: null,
+					phaseEndsAt: null,
 
 					// Actions
 					createRoom: async (config = {}) => {
@@ -268,9 +275,7 @@ export const useGameStore = create<GameStoreState>()(
 						});
 					},
 
-					setCurrentQuestion: (question) => set({ currentQuestion: question, questionTimeLeft: get().config.timeLimit || 30 }),
-
-					setQuestionTimeLeft: (time) => set({ questionTimeLeft: time }),
+					setCurrentQuestion: (question) => set({ currentQuestion: question }),
 
 					addAttack: (attack) => {
 						set((state) => ({
@@ -280,6 +285,44 @@ export const useGameStore = create<GameStoreState>()(
 					},
 
 					clearAllAttacks: () => set({ attacks: [], lastAttack: null }),
+
+					// Server-authoritative actions
+					handleGameStateUpdate: (authState) => {
+						set((state) => {
+							// Mapear fase autoritativa para fase legacy quando necessário
+							let legacyPhase: GamePhase = state.phase;
+							
+							switch (authState.phase) {
+								case 'LOBBY':
+									legacyPhase = 'lobby';
+									break;
+								case 'PREPARING':
+								case 'QUESTION':
+								case 'REVEAL':
+								case 'SCOREBOARD':
+									legacyPhase = 'playing';
+									break;
+								case 'ENDED':
+									// Determinar se é victory ou defeat baseado na hydra health
+									legacyPhase = authState.hydraHealth <= 0 ? 'victory' : 'defeat';
+									break;
+							}
+
+							return {
+								phase: legacyPhase,
+								players: authState.players,
+								hydraHealth: authState.hydraHealth,
+								maxHydraHealth: authState.maxHydraHealth,
+								currentQuestion: authState.question || null,
+								phaseStartsAt: authState.phaseStartsAt,
+								phaseEndsAt: authState.phaseEndsAt,
+							};
+						});
+					},
+
+					setPhaseTimestamps: (startsAt, endsAt) => {
+						set({ phaseStartsAt: startsAt, phaseEndsAt: endsAt });
+					},
 
 					setError: (error) => set({ error }),
 
@@ -299,6 +342,8 @@ export const useGameStore = create<GameStoreState>()(
 							currentQuestion: null,
 							attacks: [],
 							lastAttack: null,
+							phaseStartsAt: null,
+							phaseEndsAt: null,
 						});
 					},
 				}),
@@ -312,6 +357,8 @@ export const useGameStore = create<GameStoreState>()(
 						config: state.config,
 						players: state.players,
 						playerId: state.playerId,
+						phaseStartsAt: state.phaseStartsAt,
+						phaseEndsAt: state.phaseEndsAt,
 					}),
 				},
 			),
@@ -333,3 +380,19 @@ export const useGameConfig = () => useGameStore((state) => state.config);
 export const useHydraHealth = () => useGameStore((state) => ({ current: state.hydraHealth, max: state.maxHydraHealth }));
 export const useCurrentQuestion = () => useGameStore((state) => state.currentQuestion);
 export const useAttacks = () => useGameStore((state) => state.attacks);
+
+// Server-authoritative selectors
+export const usePhaseTimestamps = () => useGameStore((state) => ({ 
+	phaseStartsAt: state.phaseStartsAt, 
+	phaseEndsAt: state.phaseEndsAt 
+}));
+
+// Calculated time remaining based on server timestamps
+export const useTimeRemaining = () => {
+	const { phaseEndsAt } = usePhaseTimestamps();
+	if (!phaseEndsAt) return 0;
+	
+	const now = Date.now();
+	const endsAt = new Date(phaseEndsAt).getTime();
+	return Math.max(0, Math.ceil((endsAt - now) / 1000)); // Return seconds remaining
+};

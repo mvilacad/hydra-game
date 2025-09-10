@@ -3,6 +3,7 @@ import type {
 	ClientToServerEvents,
 	ServerToClientEvents,
 } from "../types/websocketTypes";
+import type { AuthoritativeGameState } from "@shared/types";
 import { useGameStore } from "../useGameStore";
 
 export class WebSocketEventHandlers {
@@ -33,6 +34,15 @@ export class WebSocketEventHandlers {
 	): void {
 		console.log("Game state updated:", data);
 
+		// Verifica se é o novo formato autoritativo
+		if (this.isAuthoritativeGameState(data)) {
+			console.log("📡 Using server-authoritative game state");
+			this.gameStore.handleGameStateUpdate(data);
+			return;
+		}
+
+		// Fallback para formato legacy
+		console.log("📡 Using legacy game state format");
 		if (data.players) {
 			this.gameStore.setPlayers(data.players);
 		}
@@ -48,6 +58,15 @@ export class WebSocketEventHandlers {
 		if (data.currentQuestion) {
 			this.gameStore.setCurrentQuestion(data.currentQuestion);
 		}
+	}
+
+	// Type guard para identificar formato autoritativo
+	private isAuthoritativeGameState(data: any): data is AuthoritativeGameState {
+		return data && 
+			typeof data.phaseStartsAt === 'string' &&
+			typeof data.phaseEndsAt === 'string' &&
+			typeof data.phase === 'string' &&
+			['LOBBY', 'PREPARING', 'QUESTION', 'REVEAL', 'SCOREBOARD', 'ENDED'].includes(data.phase);
 	}
 
 	private handlePlayerJoined(

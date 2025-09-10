@@ -371,6 +371,13 @@ export class GameService {
 	}
 
 	/**
+	 * Get game questions - usado pelo GameLoopService
+	 */
+	async getGameQuestions(gameId: number): Promise<GameQuestion[]> {
+		return await gameStorage.getGameQuestions(gameId);
+	}
+
+	/**
 	 * Private helper methods
 	 */
 	private async checkAutoStart(gameId: number): Promise<void> {

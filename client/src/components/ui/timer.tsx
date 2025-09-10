@@ -1,26 +1,47 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { usePhaseTimestamps } from "@/lib/stores/useGameStore";
 
 interface TimerProps {
-	duration: number; // in seconds
+	duration?: number; // LEGACY: in seconds (will be ignored if server timestamps available)
 	onComplete?: () => void;
 	className?: string;
 	showProgress?: boolean;
+	useServerTime?: boolean; // Use server-authoritative timestamps
 }
 
 export function Timer({
-	duration,
+	duration = 30,
 	onComplete,
 	className,
 	showProgress = true,
+	useServerTime = true,
 }: TimerProps) {
+	const { phaseEndsAt } = usePhaseTimestamps();
 	const [timeLeft, setTimeLeft] = useState(duration);
+	const [totalDuration, setTotalDuration] = useState(duration);
 	const [isActive, setIsActive] = useState(true);
 
 	useEffect(() => {
 		let interval: NodeJS.Timeout | null = null;
 
-		if (isActive && timeLeft > 0) {
+		if (useServerTime && phaseEndsAt) {
+			// Server-authoritative timing
+			interval = setInterval(() => {
+				const now = Date.now();
+				const endsAt = new Date(phaseEndsAt).getTime();
+				const remaining = Math.max(0, Math.ceil((endsAt - now) / 1000));
+				
+				setTimeLeft(remaining);
+				
+				if (remaining <= 0) {
+					setIsActive(false);
+					onComplete?.();
+				}
+			}, 100); // Update more frequently for smooth display
+			
+		} else if (isActive && timeLeft > 0) {
+			// Legacy local timing
 			interval = setInterval(() => {
 				setTimeLeft((prev) => {
 					if (prev <= 1) {
@@ -36,11 +57,24 @@ export function Timer({
 		return () => {
 			if (interval) clearInterval(interval);
 		};
-	}, [isActive, timeLeft, onComplete]);
+	}, [isActive, timeLeft, onComplete, useServerTime, phaseEndsAt]);
+
+	// Update total duration when server time is available
+	useEffect(() => {
+		if (useServerTime && phaseEndsAt) {
+			const now = Date.now();
+			const endsAt = new Date(phaseEndsAt).getTime();
+			const remaining = Math.max(0, Math.ceil((endsAt - now) / 1000));
+			
+			// Estimate total duration (we don't have start time, so use current + remaining)
+			setTotalDuration(remaining + 1);
+			setTimeLeft(remaining);
+		}
+	}, [phaseEndsAt, useServerTime]);
 
 	const minutes = Math.floor(timeLeft / 60);
 	const seconds = timeLeft % 60;
-	const progressPercent = ((duration - timeLeft) / duration) * 100;
+	const progressPercent = ((totalDuration - timeLeft) / totalDuration) * 100;
 
 	const getTimerColor = () => {
 		if (timeLeft <= 10) return "text-red-400";
@@ -87,8 +121,8 @@ export function Timer({
 					<div className="flex justify-between text-xs text-gray-400 mt-1">
 						<span>0:00</span>
 						<span>
-							{Math.floor(duration / 60)}:
-							{(duration % 60).toString().padStart(2, "0")}
+							{Math.floor(totalDuration / 60)}:
+							{(totalDuration % 60).toString().padStart(2, "0")}
 						</span>
 					</div>
 				</div>

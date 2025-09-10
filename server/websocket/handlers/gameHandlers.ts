@@ -5,6 +5,7 @@ import {
 	questionService,
 	statsService,
 } from "../../services";
+import { gameLoopService } from "../../services/GameLoopService";
 import { isValidRoomCode, normalizeRoomCode } from "../../utils/roomCodes";
 
 export interface GameHandlersInterface {
@@ -284,25 +285,33 @@ export class GameHandlers implements GameHandlersInterface {
 				case "start_game": {
 					const startedGame = await gameService.startGame(socket.data.gameId);
 					if (startedGame) {
-						socket.to(roomName).emit("game_phase_change", { phase: "battle" });
-						await this.broadcastGameState(socket.data.gameId, socket.server);
-
-						// Start first question after brief delay
-						setTimeout(async () => {
-							await this.startNextQuestion(socket.data.gameId, socket.server);
-						}, 2000);
+						// Inicia o GameLoopService em vez de usar setTimeout
+						const gameLoopStarted = await gameLoopService.startGame(
+							socket.data.gameId, 
+							socket.server
+						);
+						
+						if (gameLoopStarted) {
+							console.log(`🎮 Game loop started for game ${socket.data.gameId}`);
+						} else {
+							console.error(`❌ Failed to start game loop for game ${socket.data.gameId}`);
+						}
 					}
 					break;
 				}
 
 				case "reset_game":
+					// Para o game loop antes de resetar
+					gameLoopService.stopGame(socket.data.gameId);
+					
 					await gameService.resetGame(socket.data.gameId);
 					socket.to(roomName).emit("game_reset");
 					await this.broadcastGameState(socket.data.gameId, socket.server);
 					break;
 
 				case "next_question":
-					await this.startNextQuestion(socket.data.gameId, socket.server);
+					// Comando legado - agora controlado pelo GameLoopService
+					console.log("next_question command is now handled by GameLoopService");
 					break;
 
 				case "end_question":
@@ -360,6 +369,9 @@ export class GameHandlers implements GameHandlersInterface {
 				return;
 			}
 
+			// Para o game loop antes de resetar
+			gameLoopService.stopGame(socket.data.gameId);
+
 			await gameService.resetGame(socket.data.gameId);
 
 			const roomName = `game-${socket.data.gameId}`;
@@ -415,6 +427,17 @@ export class GameHandlers implements GameHandlersInterface {
 	 */
 	async broadcastGameState(gameId: number, io: Server): Promise<void> {
 		try {
+			// Verifica se há um GameLoop ativo
+			const authoritativeState = gameLoopService.getGameState(gameId);
+			
+			if (authoritativeState) {
+				// Se GameLoop está ativo, usa estado autoritativo
+				const roomName = `game-${gameId}`;
+				io.to(roomName).emit("game_state_update", authoritativeState);
+				return;
+			}
+
+			// Fallback para o sistema legacy
 			const gameState = await gameService.getGameState(gameId);
 			if (!gameState) return;
 
@@ -423,7 +446,7 @@ export class GameHandlers implements GameHandlersInterface {
 			// Get real-time stats
 			const realtimeStats = await statsService.getRealtimeStats(gameId);
 
-			// Broadcast to all clients in room
+			// Broadcast to all clients in room (formato legacy)
 			io.to(roomName).emit("game_state_update", {
 				phase: gameState.game.status,
 				players: gameState.players.map((p) => ({
@@ -446,39 +469,10 @@ export class GameHandlers implements GameHandlersInterface {
 
 	/**
 	 * Start the next question in the game
+	 * @deprecated Agora controlado pelo GameLoopService
 	 */
 	private async startNextQuestion(gameId: number, io: Server): Promise<void> {
-		try {
-			const question = await gameService.nextQuestion(gameId);
-			if (!question) return; // Game ended
-
-			const roomName = `game-${gameId}`;
-
-			// Emit question start to all clients
-			io.to(roomName).emit("question_start", {
-				id: question.id,
-				question: (question.questionData as any).question,
-				options: (question.questionData as any).options,
-				type: (question.questionData as any).type,
-				timeLimit: question.timeLimit,
-				position: question.position,
-			});
-
-			// Auto-advance after time limit
-			setTimeout(async () => {
-				io.to(roomName).emit("question_end", {});
-
-				// Check if game continues
-				setTimeout(async () => {
-					const gameState = await gameService.getGameState(gameId);
-					if (gameState?.game.status === "battle") {
-						await this.startNextQuestion(gameId, io);
-					}
-				}, 3000);
-			}, question.timeLimit * 1000);
-		} catch (error) {
-			console.error("Error starting next question:", error);
-		}
+		console.log(`startNextQuestion deprecated for game ${gameId} - now handled by GameLoopService`);
 	}
 }
 

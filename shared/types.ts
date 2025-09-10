@@ -73,7 +73,41 @@ export interface PlayerAttackMessage extends WebSocketMessage {
 
 export interface GameStateUpdateMessage extends WebSocketMessage {
 	type: "game_state_update";
-	data: GameState;
+	data: GameState | AuthoritativeGameState;
+}
+
+// Novo tipo para o sistema server-authoritative
+export type AuthoritativeGamePhase = 
+  | 'LOBBY'
+  | 'PREPARING' // Contagem regressiva para a pergunta
+  | 'QUESTION'  // Pergunta ativa
+  | 'REVEAL'    // Mostrando resposta correta/incorreta  
+  | 'SCOREBOARD'// Exibindo pontuações da rodada
+  | 'ENDED';    // Fim de jogo (victory/defeat)
+
+export interface AuthoritativeGameState {
+  phase: AuthoritativeGamePhase;
+  question?: {
+    id: string | number;
+    question: string;
+    options: string[];
+    type: "sword" | "arrow" | "magic" | "fire";
+    timeLimit: number;
+    position: number;
+  };
+  players: {
+    id: string | number;
+    name: string;
+    character: "warrior" | "mage" | "archer" | "paladin";
+    score: number;
+    playerId: string;
+    isConnected: boolean;
+  }[];
+  hydraHealth: number;
+  maxHydraHealth: number;
+  phaseStartsAt: string; // ISO timestamp UTC
+  phaseEndsAt: string;   // ISO timestamp UTC
+  currentQuestionIndex?: number;
 }
 
 export interface QuestionStartMessage extends WebSocketMessage {
