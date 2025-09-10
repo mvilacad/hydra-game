@@ -108,6 +108,7 @@
 		"tailwind-scrollbar": "^4.0.2",
 		"tailwindcss-animate": "^1.0.7",
 		"three": "^0.180.0",
+		"three-stdlib": "^2.36.0",
 		"vaul": "^1.1.2",
 		"vite-plugin-glsl": "^1.5.1",
 		"wouter": "^3.7.1",

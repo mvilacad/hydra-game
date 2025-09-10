@@ -38,7 +38,7 @@ export function BattleScene({ className }: BattleSceneProps) {
 				number,
 			];
 		});
-	}, [players.length]);
+	}, [players.length, players.map]);
 
 	return (
 		<div className={`relative w-full h-full ${className ?? ""}`}>
