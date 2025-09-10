@@ -6,3 +6,5 @@ vite.config.ts.*
 *.tar.gz
 .playwright-mcp
 .figma
+.env
+!.env.example
