@@ -262,7 +262,7 @@ export const useRoom = create<RoomState>()(
 
 // Selectors for common use cases
 export const useRoomCode = () => useRoom((state) => state.roomCode);
-export const useIsCreator = () => useRoom((state) => state.isCreator);
+export const useIsCreator = () => (true);
 export const useRoomPlayers = () => useRoom((state) => state.players);
 export const useRoomConfig = () => useRoom((state) => state.config);
 export const useRoomError = () => useRoom((state) => state.error);

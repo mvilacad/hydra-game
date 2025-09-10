@@ -1,17 +1,17 @@
-import { create } from "zustand";
-import { subscribeWithSelector, devtools, persist } from "zustand/middleware";
 import type { Game } from "@shared/schema";
+import { create } from "zustand";
+import { devtools, persist, subscribeWithSelector } from "zustand/middleware";
 
 export type GamePhase = "ready" | "playing" | "ended";
 
 interface GameState {
 	phase: GamePhase;
-	
+
 	// Room context (NEW)
 	gameId: number | null;
 	roomCode: string | null;
 	isInRoom: boolean;
-	
+
 	// Game data
 	currentGame: Game | null;
 	hydraHealth: number;
@@ -22,7 +22,7 @@ interface GameState {
 	start: () => void;
 	restart: () => void;
 	end: () => void;
-	
+
 	// Room actions (NEW)
 	setGameContext: (game: Game) => void;
 	clearGameContext: () => void;
@@ -55,7 +55,7 @@ export const useGame = create<GameState>()(
 				},
 
 				restart: () => {
-					set((state) => ({ 
+					set((state) => ({
 						phase: "ready",
 						hydraHealth: state.maxHydraHealth,
 						currentQuestionIndex: 0,
@@ -83,8 +83,12 @@ export const useGame = create<GameState>()(
 						maxHydraHealth: game.maxHydraHealth,
 						currentQuestionIndex: game.currentQuestionIndex || 0,
 						// Update phase based on game status
-						phase: game.status === "battle" ? "playing" : 
-							   game.status === "victory" || game.status === "defeat" ? "ended" : "ready"
+						phase:
+							game.status === "battle"
+								? "playing"
+								: game.status === "victory" || game.status === "defeat"
+									? "ended"
+									: "ready",
 					});
 				},
 
@@ -123,20 +127,22 @@ export const useGame = create<GameState>()(
 					roomCode: state.roomCode,
 					isInRoom: state.isInRoom,
 				}),
-			}
+			},
 		),
 		{
 			name: "game-store",
-		}
-	)
+		},
+	),
 );
 
 // Selectors for common use cases
 export const useGameId = () => useGame((state) => state.gameId);
 export const useRoomCodeFromGame = () => useGame((state) => state.roomCode);
 export const useIsInRoom = () => useGame((state) => state.isInRoom);
-export const useHydraHealth = () => useGame((state) => ({ 
-	current: state.hydraHealth, 
-	max: state.maxHydraHealth 
-}));
-export const useCurrentQuestionIndex = () => useGame((state) => state.currentQuestionIndex);
+export const useHydraHealth = () =>
+	useGame((state) => ({
+		current: state.hydraHealth,
+		max: state.maxHydraHealth,
+	}));
+export const useCurrentQuestionIndex = () =>
+	useGame((state) => state.currentQuestionIndex);

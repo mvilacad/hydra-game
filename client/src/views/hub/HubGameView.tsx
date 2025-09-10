@@ -19,7 +19,9 @@ export default function HubDisplay() {
 	const { connect, isConnected, sendMessage } = useWebSocket();
 	const gameState = useBattle();
 	const { players, gamePhase, attacks, currentQuestion } = gameState;
-	
+
+	console.log("Game state is", gameState);
+
 	// Room management
 	const roomCode = useRoomCode();
 	const isCreator = useIsCreator();
@@ -30,7 +32,7 @@ export default function HubDisplay() {
 	useEffect(() => {
 		const urlParams = new URLSearchParams(window.location.search);
 		const roomParam = urlParams.get("room");
-		
+
 		if (roomParam) {
 			setInitialRoomCode(roomParam);
 			// Auto-join if room code is provided
@@ -146,10 +148,13 @@ export default function HubDisplay() {
 			<div className="absolute inset-0 pointer-events-none p-2 sm:p-4">
 				{/* Top HUD - Battle Status & Question Timer */}
 				<div className="absolute top-0 left-0 pointer-events-auto">
-					<BattleHUD gameState={{
-						...gameState,
-						phase: gamePhase as any
-					}} isConnected={isConnected} />
+					<BattleHUD
+						gameState={{
+							...gameState,
+							phase: gamePhase as any,
+						}}
+						isConnected={isConnected}
+					/>
 				</div>
 
 				{/* Right side - Damage Meter (MMO Style) */}
@@ -159,7 +164,7 @@ export default function HubDisplay() {
 
 				{/* Bottom Left - Combat Log */}
 				<div className="absolute bottom-0 left-0 w-72 sm:w-96 pointer-events-auto">
-					<CombatLog attacks={attacks} players={players} />
+					{/* <CombatLog attacks={attacks} players={players} /> */}
 				</div>
 
 				{/* Center - Room Info & Battle Controls */}
@@ -207,10 +212,7 @@ export default function HubDisplay() {
 							<div className="text-lg text-gray-300 mb-4">
 								Mais sorte na próxima!
 							</div>
-							<FigmaButton
-								onClick={handleResetGame}
-								variant="secondary"
-							>
+							<FigmaButton onClick={handleResetGame} variant="secondary">
 								Tentar Novamente
 							</FigmaButton>
 						</StatusCard>
@@ -256,7 +258,10 @@ export default function HubDisplay() {
 				{/* Room Info Overlay - Always visible in corner */}
 				{roomCode && (
 					<div className="absolute top-4 right-4 pointer-events-auto">
-						<StatusCard className="p-3 bg-black/60 backdrop-blur-sm" variant="dark">
+						<StatusCard
+							className="p-3 bg-black/60 backdrop-blur-sm"
+							variant="dark"
+						>
 							<div className="flex items-center gap-2 text-sm">
 								<span className="text-gray-400">Sala:</span>
 								<span className="font-mono font-bold text-white">

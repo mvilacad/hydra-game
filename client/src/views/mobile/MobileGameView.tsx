@@ -1,5 +1,3 @@
-import type { Player } from "@shared/types";
-import { useEffect, useState } from "react";
 import { ConnectionStatus } from "@/components/feedback/ConnectionStatus";
 import { LoadingScreen } from "@/components/feedback/LoadingScreen";
 import { GameLayout } from "@/components/layout/GameLayout";
@@ -14,16 +12,18 @@ import { PlayerSetup } from "@/features/player-setup";
 import { Question } from "@/features/questions";
 import { RoomJoin } from "@/features/room-management";
 import { useBattle } from "@/lib/stores/useBattle";
-import { useWebSocket } from "@/lib/stores/useWebSocket";
-import { useRoom, useRoomCode } from "@/lib/stores/useRoom";
 import { useGame } from "@/lib/stores/useGame";
+import { useRoom, useRoomCode } from "@/lib/stores/useRoom";
+import { useWebSocket } from "@/lib/stores/useWebSocket";
+import type { Player } from "@shared/types";
+import { useEffect, useState } from "react";
 import { EndedScreen } from "./components/EndedScreen";
 import { WaitingScreen } from "./components/WaitingScreen";
-import { 
-	MenuScreen, 
-	CharacterSelectionScreen, 
-	LobbyScreen, 
-	GameplayScreen 
+import {
+	CharacterSelectionScreen,
+	GameplayScreen,
+	LobbyScreen,
+	MenuScreen,
 } from "./screens";
 
 export const MobileGameView: React.FC = () => {
@@ -36,12 +36,22 @@ export const MobileGameView: React.FC = () => {
 	const [timeLeft, setTimeLeft] = useState(30);
 	const [showRoomJoin, setShowRoomJoin] = useState(true);
 	const [initialRoomCode, setInitialRoomCode] = useState("");
-	
+
 	// New Figma flow states
-	const [gameFlow, setGameFlow] = useState<"menu" | "character-selection" | "room-join" | "lobby" | "gameplay">("menu");
+	const [gameFlow, setGameFlow] = useState<
+		"menu" | "character-selection" | "room-join" | "lobby" | "gameplay"
+	>("menu");
+
 	const [useFigmaDesign, setUseFigmaDesign] = useState(true);
 
-	const { isConnected, connect, disconnect, sendMessage, joinRoom: joinRoomWS } = useWebSocket();
+	const {
+		isConnected,
+		connect,
+		disconnect,
+		sendMessage,
+		joinRoom: joinRoomWS,
+	} = useWebSocket();
+
 	const {
 		players,
 		gamePhase: battlePhase,
@@ -50,6 +60,7 @@ export const MobileGameView: React.FC = () => {
 		currentQuestion: battleCurrentQuestion,
 	} = useBattle();
 
+
 	// Room management
 	const roomCode = useRoomCode();
 	const { joinRoom: joinRoomAPI, currentRoom } = useRoom();
@@ -57,6 +68,7 @@ export const MobileGameView: React.FC = () => {
 
 	const { battleState, transitionToPhase, startPreparationPhase, resetBattle } =
 		useBattlePhases();
+
 	const { submitAnswer } = useAnswerSubmission({
 		onSubmissionComplete: () => {
 			transitionToPhase("results", 1000, () => {
@@ -69,7 +81,7 @@ export const MobileGameView: React.FC = () => {
 	useEffect(() => {
 		const urlParams = new URLSearchParams(window.location.search);
 		const roomParam = urlParams.get("room");
-		
+
 		if (roomParam) {
 			setInitialRoomCode(roomParam);
 			setShowRoomJoin(false);
@@ -128,6 +140,9 @@ export const MobileGameView: React.FC = () => {
 
 	// Handle battle phase transitions
 	useEffect(() => {
+
+		console.log("Battle phase changed to", battlePhase);
+		console.log("Internal battle state phase is", battleState.phase);
 		if (
 			battlePhase === "battle" &&
 			currentPlayer &&
@@ -174,13 +189,13 @@ export const MobileGameView: React.FC = () => {
 			const result = await joinRoomAPI(code);
 			if (result.success && result.game) {
 				setGameContext(result.game);
-				
+
 				if (useFigmaDesign) {
 					setGameFlow("lobby");
 				} else {
 					setShowRoomJoin(false);
 				}
-				
+
 				// Join WebSocket room
 				if (joinRoomWS) {
 					joinRoomWS(code);
@@ -212,7 +227,10 @@ export const MobileGameView: React.FC = () => {
 		setGameFlow("character-selection");
 	};
 
-	const handleCharacterConfirm = (data: { characterId: string; playerName: string }) => {
+	const handleCharacterConfirm = (data: {
+		characterId: string;
+		playerName: string;
+	}) => {
 		setCurrentPlayer({
 			name: data.playerName,
 			character: data.characterId,
@@ -264,7 +282,7 @@ export const MobileGameView: React.FC = () => {
 		switch (gameFlow) {
 			case "menu":
 				return <MenuScreen onStartGame={handleStartGame} />;
-			
+
 			case "character-selection":
 				return (
 					<CharacterSelectionScreen
@@ -272,7 +290,7 @@ export const MobileGameView: React.FC = () => {
 						onBack={handleBackToMenu}
 					/>
 				);
-			
+
 			case "room-join":
 				return (
 					<GameLayout variant="mobile">
@@ -284,7 +302,7 @@ export const MobileGameView: React.FC = () => {
 						</div>
 					</GameLayout>
 				);
-			
+
 			case "lobby":
 				if (!currentPlayer || !roomCode) {
 					return <LoadingScreen title="Carregando..." />;
@@ -298,22 +316,23 @@ export const MobileGameView: React.FC = () => {
 						maxPlayers={20}
 					/>
 				);
-			
+
 			case "gameplay":
 				if (!currentQuestion || !currentPlayer) {
 					return <LoadingScreen title="Carregando pergunta..." />;
 				}
-				
+
 				return (
 					<GameplayScreen
 						question={{
 							id: currentQuestion.id,
 							text: currentQuestion.question,
-							options: currentQuestion.options?.map((opt: string, idx: number) => ({
-								id: idx.toString(),
-								text: opt,
-								isCorrect: idx === currentQuestion.correct,
-							})) || [],
+							options:
+								currentQuestion.options?.map((opt: string, idx: number) => ({
+									id: idx.toString(),
+									text: opt,
+									isCorrect: idx === currentQuestion.correct,
+								})) || [],
 							round: 1,
 							totalRounds: 10,
 						}}
@@ -321,7 +340,9 @@ export const MobileGameView: React.FC = () => {
 						hydraHealth={hydraHealth}
 						maxHydraHealth={maxHydraHealth}
 						playerName={currentPlayer.name}
-						playerScore={players.find(p => p.id === currentPlayer.id)?.score || 0}
+						playerScore={
+							players.find((p) => p.id === currentPlayer.id)?.score || 0
+						}
 						characterId={currentPlayer.character}
 						onAnswerSelect={handleAnswerSubmit}
 						selectedAnswer={undefined}

@@ -6,9 +6,12 @@ import type {
 	WebSocketEventHandlers,
 	WebSocketStore,
 } from "./types/websocketTypes";
-import { createConnection, validateConnection } from "./utils/websocketConnection";
-import { WebSocketEventHandlers as EventHandlers } from "./utils/websocketEventHandlers";
 import { useRoom } from "./useRoom";
+import {
+	createConnection,
+	validateConnection,
+} from "./utils/websocketConnection";
+import { WebSocketEventHandlers as EventHandlers } from "./utils/websocketEventHandlers";
 
 const INITIAL_STATE = {
 	socket: null,
@@ -227,7 +230,8 @@ export const useWebSocket = create<WebSocketStore>()(
 						console.log("Joining room:", roomCode);
 						return true;
 					} catch (error) {
-						const errorMessage = error instanceof Error ? error.message : "Failed to join room";
+						const errorMessage =
+							error instanceof Error ? error.message : "Failed to join room";
 						console.error("Error joining room:", error);
 						set({ error: errorMessage });
 						return false;
@@ -247,7 +251,8 @@ export const useWebSocket = create<WebSocketStore>()(
 						console.log("Leaving room");
 						return true;
 					} catch (error) {
-						const errorMessage = error instanceof Error ? error.message : "Failed to leave room";
+						const errorMessage =
+							error instanceof Error ? error.message : "Failed to leave room";
 						console.error("Error leaving room:", error);
 						set({ error: errorMessage });
 						return false;

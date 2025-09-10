@@ -11,6 +11,7 @@ import {
 } from "@/lib/stores/useRoom";
 import { gameApi } from "@/lib/services";
 import type { Player } from "@shared/schema";
+import { useBattle } from "@/lib/stores";
 
 interface RoomInfoProps {
 	onStartGame?: () => void;
@@ -27,8 +28,8 @@ export function RoomInfo({
 }: RoomInfoProps) {
 	const roomCode = useRoomCode();
 	const isCreator = useIsCreator();
-	const players = useRoomPlayers();
 	const { currentRoom, leaveRoom } = useRoom();
+	const { players } = useBattle();
 	const [qrCodeValue, setQrCodeValue] = useState("");
 	const [showStats, setShowStats] = useState(false);
 
@@ -48,6 +49,7 @@ export function RoomInfo({
 
 	const canStartGame =
 		isCreator && players.length > 0 && gamePhase === "waiting";
+
 	const canResetGame =
 		isCreator &&
 		(gamePhase === "victory" ||
