@@ -1,13 +1,11 @@
-import { useEffect, useState } from "react";
+import { FigmaButton, ParchmentCard, StatusCard } from "@/components/figma-ui";
 import { BattleHUD } from "@/components/ui/battle-hud";
-import { CombatLog } from "@/components/ui/combat-log";
 import { DamageMeter } from "@/components/ui/damage-meter";
-import { QRCodeDisplay } from "@/components/ui/qr-code-display";
 import { BattleScene } from "@/features/game-3d";
-import { RoomJoin, RoomInfo, RoomSetup } from "@/features/room-management";
-import { FigmaButton, StatusCard, ParchmentCard } from "@/components/figma-ui";
-import { useWebSocket } from "@/lib/stores/useWebSocket";
+import { RoomInfo, RoomJoin, RoomSetup } from "@/features/room-management";
 import { useGameStore } from "@/lib/stores/useGameStore";
+import { useWebSocket } from "@/lib/stores/useWebSocket";
+import { useEffect, useState } from "react";
 
 export default function HubDisplay() {
 	const [showRoomJoin, setShowRoomJoin] = useState(true);
@@ -228,7 +226,7 @@ export default function HubDisplay() {
 							<div className="flex items-center gap-3 mb-4">
 								<div className="badge-purple">❓ Questão</div>
 								<h4 className="text-xl font-semibold text-white">
-									Rodada {currentQuestion.round || 1}
+									Rodada {currentQuestion.position || 1}
 								</h4>
 							</div>
 
