@@ -1,0 +1,328 @@
+/* Figma Design System - Extracted from mockups */
+
+/* Game Background - Stone/Dungeon texture as seen in Figma */
+.figma-game-background {
+	background: 
+		radial-gradient(circle at 30% 20%, rgba(139, 69, 19, 0.1) 0%, transparent 50%),
+		radial-gradient(circle at 70% 80%, rgba(87, 83, 74, 0.1) 0%, transparent 50%),
+		linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+	position: relative;
+	min-height: 100vh;
+}
+
+.figma-game-background::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-image: 
+		url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M30 30c0-16.569 13.431-30 30-30v60c-16.569 0-30-13.431-30-30z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+	opacity: 0.1;
+	pointer-events: none;
+}
+
+/* Figma Button Styles - Exact match to design */
+.figma-button-primary {
+	background: linear-gradient(180deg, #ff4444 0%, #cc3333 100%);
+	box-shadow: 
+		0 6px 0 #990000,
+		0 8px 25px rgba(0, 0, 0, 0.4);
+	border: none;
+	border-radius: 50px;
+	color: white;
+	font-weight: 700;
+	font-size: 16px;
+	padding: 12px 32px;
+	min-width: 140px;
+	transition: all 0.2s ease;
+	cursor: pointer;
+	user-select: none;
+}
+
+.figma-button-primary:hover {
+	box-shadow: 
+		0 4px 0 #990000,
+		0 6px 20px rgba(0, 0, 0, 0.4);
+	transform: translateY(2px);
+}
+
+.figma-button-primary:active {
+	box-shadow: 
+		0 2px 0 #990000,
+		0 4px 15px rgba(0, 0, 0, 0.4);
+	transform: translateY(4px);
+}
+
+/* Parchment/Paper effect for questions */
+.figma-parchment {
+	background: linear-gradient(135deg, #f5e6d3 0%, #e8d5b7 100%);
+	border: 2px solid #d4af7a;
+	border-radius: 16px;
+	position: relative;
+	box-shadow: 
+		0 4px 20px rgba(139, 69, 19, 0.2),
+		inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.figma-parchment::before {
+	content: "";
+	position: absolute;
+	top: -2px;
+	left: -2px;
+	right: -2px;
+	bottom: -2px;
+	background: linear-gradient(45deg, #d4af7a, #c19653, #d4af7a);
+	border-radius: 18px;
+	z-index: -1;
+}
+
+/* Dark translucent cards */
+.figma-dark-card {
+	background: rgba(0, 0, 0, 0.7);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 12px;
+	backdrop-filter: blur(10px);
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Timer styling as in Figma */
+.figma-timer {
+	background: rgba(0, 0, 0, 0.8);
+	border: 2px solid rgba(255, 255, 255, 0.2);
+	border-radius: 12px;
+	padding: 12px 24px;
+	font-family: 'JetBrains Mono', 'Courier New', monospace;
+	font-size: 24px;
+	font-weight: 700;
+	color: #ffffff;
+	text-align: center;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.figma-timer.danger {
+	border-color: #ff4444;
+	color: #ff6666;
+	box-shadow: 
+		0 4px 20px rgba(0, 0, 0, 0.5),
+		0 0 20px rgba(255, 68, 68, 0.3);
+	animation: pulse-timer 1s ease-in-out infinite;
+}
+
+@keyframes pulse-timer {
+	0%, 100% { 
+		box-shadow: 
+			0 4px 20px rgba(0, 0, 0, 0.5),
+			0 0 20px rgba(255, 68, 68, 0.3); 
+	}
+	50% { 
+		box-shadow: 
+			0 4px 20px rgba(0, 0, 0, 0.5),
+			0 0 30px rgba(255, 68, 68, 0.6); 
+	}
+}
+
+/* Health bar styling */
+.figma-health-bar {
+	background: #2d2d2d;
+	border: 2px solid #444444;
+	border-radius: 20px;
+	height: 24px;
+	overflow: hidden;
+	position: relative;
+}
+
+.figma-health-fill {
+	background: linear-gradient(90deg, #ff4444 0%, #cc3333 50%, #ff6666 100%);
+	height: 100%;
+	border-radius: 18px;
+	position: relative;
+	transition: width 0.5s ease;
+}
+
+.figma-health-fill::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+	animation: shine 2s linear infinite;
+}
+
+@keyframes shine {
+	0% { transform: translateX(-100%); }
+	100% { transform: translateX(100%); }
+}
+
+/* Question options styling */
+.figma-option {
+	background: rgba(45, 45, 45, 0.9);
+	border: 2px solid #666666;
+	border-radius: 12px;
+	padding: 16px;
+	color: white;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	backdrop-filter: blur(5px);
+}
+
+.figma-option:hover {
+	border-color: #888888;
+	background: rgba(60, 60, 60, 0.9);
+	transform: translateY(-2px);
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.figma-option.selected {
+	border-color: #4488ff;
+	background: rgba(68, 136, 255, 0.2);
+}
+
+.figma-option.correct {
+	border-color: #44ff44;
+	background: rgba(68, 255, 68, 0.2);
+}
+
+.figma-option.incorrect {
+	border-color: #ff4444;
+	background: rgba(255, 68, 68, 0.2);
+}
+
+/* Typography matching Figma */
+.figma-title {
+	font-size: 32px;
+	font-weight: 700;
+	color: #ffffff;
+	text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+	margin: 0;
+}
+
+.figma-subtitle {
+	font-size: 18px;
+	font-weight: 600;
+	color: #cccccc;
+	margin: 0;
+}
+
+.figma-body {
+	font-size: 16px;
+	font-weight: 400;
+	color: #e0e0e0;
+	line-height: 1.5;
+}
+
+/* Score display */
+.figma-score {
+	background: linear-gradient(135deg, #333333, #1a1a1a);
+	border: 2px solid #666666;
+	border-radius: 8px;
+	padding: 8px 16px;
+	color: #ffffff;
+	font-weight: 700;
+	font-size: 18px;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.figma-score.positive {
+	color: #44ff44;
+	border-color: #44ff44;
+	box-shadow: 
+		0 2px 10px rgba(0, 0, 0, 0.3),
+		0 0 15px rgba(68, 255, 68, 0.2);
+}
+
+/* Avatar selection */
+.figma-avatar {
+	width: 64px;
+	height: 64px;
+	border-radius: 50%;
+	border: 4px solid #666666;
+	overflow: hidden;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	position: relative;
+}
+
+.figma-avatar:hover {
+	border-color: #888888;
+	transform: scale(1.1);
+}
+
+.figma-avatar.selected {
+	border-color: #ff4444;
+	box-shadow: 0 0 20px rgba(255, 68, 68, 0.5);
+}
+
+.figma-avatar img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+/* Input field styling */
+.figma-input {
+	background: rgba(45, 45, 45, 0.9);
+	border: 2px solid #666666;
+	border-radius: 12px;
+	padding: 12px 16px;
+	color: white;
+	font-size: 16px;
+	width: 100%;
+	transition: all 0.2s ease;
+}
+
+.figma-input:focus {
+	outline: none;
+	border-color: #4488ff;
+	box-shadow: 0 0 0 3px rgba(68, 136, 255, 0.2);
+}
+
+.figma-input::placeholder {
+	color: #888888;
+}
+
+/* Status indicators */
+.figma-status-waiting {
+	background: rgba(255, 193, 7, 0.2);
+	color: #ffc107;
+	border: 1px solid #ffc107;
+	border-radius: 20px;
+	padding: 6px 12px;
+	font-size: 14px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.figma-status-active {
+	background: rgba(40, 167, 69, 0.2);
+	color: #28a745;
+	border: 1px solid #28a745;
+	border-radius: 20px;
+	padding: 6px 12px;
+	font-size: 14px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+	.figma-title {
+		font-size: 24px;
+	}
+	
+	.figma-button-primary {
+		font-size: 14px;
+		padding: 10px 24px;
+		min-width: 120px;
+	}
+	
+	.figma-timer {
+		font-size: 20px;
+		padding: 10px 20px;
+	}
+}

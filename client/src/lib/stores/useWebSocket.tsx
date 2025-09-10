@@ -8,6 +8,7 @@ import type {
 } from "./types/websocketTypes";
 import { createConnection, validateConnection } from "./utils/websocketConnection";
 import { WebSocketEventHandlers as EventHandlers } from "./utils/websocketEventHandlers";
+import { useRoom } from "./useRoom";
 
 const INITIAL_STATE = {
 	socket: null,
@@ -86,12 +87,16 @@ export const useWebSocket = create<WebSocketStore>()(
 			return {
 				...INITIAL_STATE,
 
-				connect: () => {
+				connect: (roomCode?: string) => {
 					const { socket: currentSocket } = get();
 
 					// Prevent duplicate connections
 					if (validateConnection(currentSocket)) {
 						console.log("WebSocket already connected");
+						// If room code provided, join the room
+						if (roomCode && currentSocket) {
+							currentSocket.emit("join_room", { roomCode });
+						}
 						return;
 					}
 
@@ -103,7 +108,34 @@ export const useWebSocket = create<WebSocketStore>()(
 						// Setup game event handlers
 						eventHandlers = new EventHandlers(newSocket);
 
+						// Setup room event handlers
+						newSocket.on("room_joined", (data) => {
+							console.log("Room joined:", data);
+							// Update room store with joined room data
+							const roomStore = useRoom.getState();
+							if (data.room) {
+								roomStore.setPlayers(data.players || []);
+							}
+						});
+
+						newSocket.on("room_state_update", (data) => {
+							console.log("Room state update:", data);
+							const roomStore = useRoom.getState();
+							roomStore.setPlayers(data.players || []);
+						});
+
+						newSocket.on("room_error", (data) => {
+							console.error("Room error:", data.error);
+							const roomStore = useRoom.getState();
+							roomStore.setError(data.error);
+						});
+
 						set({ socket: newSocket });
+
+						// Auto-join room if code provided
+						if (roomCode) {
+							newSocket.emit("join_room", { roomCode });
+						}
 					} catch (error) {
 						console.error("Failed to create WebSocket connection:", error);
 						set({
@@ -178,6 +210,48 @@ export const useWebSocket = create<WebSocketStore>()(
 
 				clearError: () => {
 					set({ error: null });
+				},
+
+				// Room-specific methods
+				joinRoom: (roomCode: string, playerData?: any) => {
+					const { socket } = get();
+
+					if (!validateConnection(socket)) {
+						console.warn("Cannot join room: WebSocket not connected");
+						set({ error: "Not connected to server" });
+						return false;
+					}
+
+					try {
+						socket.emit("join_room", { roomCode, playerData });
+						console.log("Joining room:", roomCode);
+						return true;
+					} catch (error) {
+						const errorMessage = error instanceof Error ? error.message : "Failed to join room";
+						console.error("Error joining room:", error);
+						set({ error: errorMessage });
+						return false;
+					}
+				},
+
+				leaveRoom: () => {
+					const { socket } = get();
+
+					if (!validateConnection(socket)) {
+						console.warn("Cannot leave room: WebSocket not connected");
+						return false;
+					}
+
+					try {
+						socket.emit("leave_room");
+						console.log("Leaving room");
+						return true;
+					} catch (error) {
+						const errorMessage = error instanceof Error ? error.message : "Failed to leave room";
+						console.error("Error leaving room:", error);
+						set({ error: errorMessage });
+						return false;
+					}
 				},
 			};
 		},

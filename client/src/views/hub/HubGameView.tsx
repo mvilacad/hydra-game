@@ -1,25 +1,102 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { BattleHUD } from "@/components/ui/battle-hud";
 import { CombatLog } from "@/components/ui/combat-log";
 import { DamageMeter } from "@/components/ui/damage-meter";
 import { QRCodeDisplay } from "@/components/ui/qr-code-display";
 import { BattleScene } from "@/features/game-3d";
+import { RoomJoin, RoomInfo, RoomSetup } from "@/features/room-management";
+import { FigmaButton, StatusCard, ParchmentCard } from "@/components/figma-ui";
 import { useBattle } from "@/lib/stores/useBattle";
 import { useWebSocket } from "@/lib/stores/useWebSocket";
+import { useRoom, useRoomCode, useIsCreator } from "@/lib/stores/useRoom";
+import { useGame } from "@/lib/stores/useGame";
 
 export default function HubDisplay() {
+	const [showRoomJoin, setShowRoomJoin] = useState(true);
+	const [showRoomSetup, setShowRoomSetup] = useState(false);
+	const [initialRoomCode, setInitialRoomCode] = useState("");
+
 	const { connect, isConnected, sendMessage } = useWebSocket();
 	const gameState = useBattle();
 	const { players, gamePhase, attacks, currentQuestion } = gameState;
+	
+	// Room management
+	const roomCode = useRoomCode();
+	const isCreator = useIsCreator();
+	const { currentRoom, joinRoom: joinRoomAPI } = useRoom();
+	const { setGameContext, phase: gamePhase2 } = useGame();
 
-	// Connect to WebSocket on mount
+	// Check URL params for room code
 	useEffect(() => {
-		connect();
-	}, [connect]);
+		const urlParams = new URLSearchParams(window.location.search);
+		const roomParam = urlParams.get("room");
+		
+		if (roomParam) {
+			setInitialRoomCode(roomParam);
+			// Auto-join if room code is provided
+			handleRoomJoined(roomParam, false);
+		}
+	}, []);
+
+	// Connect to WebSocket when room is available
+	useEffect(() => {
+		if (roomCode) {
+			connect(roomCode);
+		} else {
+			connect();
+		}
+	}, [connect, roomCode]);
+
+	// Room event handlers
+	const handleRoomJoined = async (code: string, creator: boolean) => {
+		if (code) {
+			try {
+				const result = await joinRoomAPI(code);
+				if (result.success && result.game) {
+					setGameContext(result.game);
+					setShowRoomJoin(false);
+					setShowRoomSetup(false);
+				}
+			} catch (error) {
+				console.error("Failed to join room:", error);
+			}
+		} else if (creator) {
+			// Show room setup for creating new room
+			setShowRoomJoin(false);
+			setShowRoomSetup(true);
+		}
+	};
+
+	const handleRoomCreated = async (roomCode: string) => {
+		// Join the newly created room
+		try {
+			const result = await joinRoomAPI(roomCode);
+			if (result.success && result.game) {
+				setGameContext(result.game);
+				setShowRoomSetup(false);
+			}
+		} catch (error) {
+			console.error("Failed to join created room:", error);
+		}
+	};
+
+	const handleBackToJoin = () => {
+		setShowRoomSetup(false);
+		setShowRoomJoin(true);
+	};
+
+	const handleLeaveRoom = () => {
+		setShowRoomJoin(true);
+		setShowRoomSetup(false);
+		// Clear URL params
+		const url = new URL(window.location.href);
+		url.searchParams.delete("room");
+		window.history.replaceState({}, "", url.toString());
+	};
 
 	// Handle manual battle start
 	const handleStartBattle = () => {
-		if (players.length > 0 && gamePhase === "waiting") {
+		if (isCreator && players.length > 0 && gamePhase === "waiting") {
 			sendMessage({
 				type: "admin_command",
 				data: { command: "start_battle" },
@@ -27,8 +104,41 @@ export default function HubDisplay() {
 		}
 	};
 
+	const handleResetGame = () => {
+		if (isCreator) {
+			sendMessage({
+				type: "admin_command",
+				data: { command: "reset_game" },
+			});
+		}
+	};
+
+	// Show room setup interface for creating new room
+	if (showRoomSetup) {
+		return (
+			<div className="w-full h-screen figma-game-background flex items-center justify-center">
+				<RoomSetup
+					onRoomCreated={handleRoomCreated}
+					onCancel={handleBackToJoin}
+				/>
+			</div>
+		);
+	}
+
+	// Show room join interface if not in a room
+	if (showRoomJoin || !roomCode) {
+		return (
+			<div className="w-full h-screen figma-game-background flex items-center justify-center">
+				<RoomJoin
+					onRoomJoined={handleRoomJoined}
+					initialRoomCode={initialRoomCode}
+				/>
+			</div>
+		);
+	}
+
 	return (
-		<div className="w-full h-screen game-background overflow-hidden relative">
+		<div className="w-full h-screen figma-game-background overflow-hidden relative">
 			{/* Main battle scene */}
 			<BattleScene className="absolute inset-0" />
 
@@ -36,7 +146,10 @@ export default function HubDisplay() {
 			<div className="absolute inset-0 pointer-events-none p-2 sm:p-4">
 				{/* Top HUD - Battle Status & Question Timer */}
 				<div className="absolute top-0 left-0 pointer-events-auto">
-					<BattleHUD gameState={gameState} isConnected={isConnected} />
+					<BattleHUD gameState={{
+						...gameState,
+						phase: gamePhase as any
+					}} isConnected={isConnected} />
 				</div>
 
 				{/* Right side - Damage Meter (MMO Style) */}
@@ -49,20 +162,21 @@ export default function HubDisplay() {
 					<CombatLog attacks={attacks} players={players} />
 				</div>
 
-				{/* Center - QR Code & Battle Controls */}
+				{/* Center - Room Info & Battle Controls */}
 				{gamePhase === "waiting" && (
-					<div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto">
-						<QRCodeDisplay
-							onStartBattle={handleStartBattle}
-							canStart={players.length > 0}
-							playerCount={players.length}
+					<div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto max-w-4xl w-full">
+						<RoomInfo
+							onStartGame={handleStartBattle}
+							onLeaveRoom={handleLeaveRoom}
+							onResetGame={handleResetGame}
+							gamePhase={gamePhase}
 						/>
 					</div>
 				)}
 
 				{gamePhase === "victory" && (
 					<div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto">
-						<div className="game-card p-8 text-center max-w-md">
+						<StatusCard className="p-8 text-center max-w-md" variant="dark">
 							<div className="badge-purple mb-4 inline-block">🎉 Vitória</div>
 							<h3 className="title-large mb-6">VITÓRIA!</h3>
 							<p className="subtitle-red mb-6">A Hidra foi derrotada!</p>
@@ -74,49 +188,39 @@ export default function HubDisplay() {
 									</span>
 								</div>
 							)}
-							<button
-								onClick={() =>
-									sendMessage({
-										type: "admin_command",
-										data: { command: "reset_game" },
-									})
-								}
-								className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-3 px-6 rounded-lg transition-all"
+							<FigmaButton
+								onClick={handleResetGame}
+								className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
 							>
 								Nova Batalha
-							</button>
-						</div>
+							</FigmaButton>
+						</StatusCard>
 					</div>
 				)}
 
 				{gamePhase === "defeat" && (
 					<div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto">
-						<div className="game-card p-8 text-center max-w-md">
+						<StatusCard className="p-8 text-center max-w-md" variant="dark">
 							<div className="badge-purple mb-4 inline-block">💀 Derrota</div>
 							<h3 className="title-large mb-6">DERROTA</h3>
 							<p className="subtitle-red mb-6">A Hidra dominou os heróis...</p>
 							<div className="text-lg text-gray-300 mb-4">
 								Mais sorte na próxima!
 							</div>
-							<button
-								onClick={() =>
-									sendMessage({
-										type: "admin_command",
-										data: { command: "reset_game" },
-									})
-								}
-								className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3 px-6 rounded-lg transition-all"
+							<FigmaButton
+								onClick={handleResetGame}
+								variant="secondary"
 							>
 								Tentar Novamente
-							</button>
-						</div>
+							</FigmaButton>
+						</StatusCard>
 					</div>
 				)}
 
 				{/* Current Question Display - Figma Style */}
 				{gamePhase === "battle" && currentQuestion && (
 					<div className="absolute bottom-4 right-4 left-1/2 transform -translate-x-1/2 pointer-events-auto max-w-3xl">
-						<div className="game-card p-6">
+						<StatusCard className="p-6" variant="dark">
 							<div className="flex items-center gap-3 mb-4">
 								<div className="badge-purple">❓ Questão</div>
 								<h4 className="text-xl font-semibold text-white">
@@ -124,25 +228,43 @@ export default function HubDisplay() {
 								</h4>
 							</div>
 
-							<p className="text-white text-xl mb-6 leading-relaxed">
-								{currentQuestion.question}
-							</p>
+							<ParchmentCard className="mb-6">
+								<p className="text-gray-800 text-xl leading-relaxed">
+									{currentQuestion.question}
+								</p>
+							</ParchmentCard>
 
 							<div className="grid grid-cols-2 gap-3">
 								{currentQuestion.options?.map(
 									(option: string, index: number) => (
-										<div
+										<StatusCard
 											key={index}
-											className="game-card p-4 hover:bg-white/10 transition-colors cursor-pointer"
+											className="p-4 hover:bg-white/10 transition-colors cursor-pointer"
+											variant="transparent"
 										>
 											<span className="text-gray-200 font-medium">
 												{String.fromCharCode(65 + index)}. {option}
 											</span>
-										</div>
+										</StatusCard>
 									),
 								)}
 							</div>
-						</div>
+						</StatusCard>
+					</div>
+				)}
+
+				{/* Room Info Overlay - Always visible in corner */}
+				{roomCode && (
+					<div className="absolute top-4 right-4 pointer-events-auto">
+						<StatusCard className="p-3 bg-black/60 backdrop-blur-sm" variant="dark">
+							<div className="flex items-center gap-2 text-sm">
+								<span className="text-gray-400">Sala:</span>
+								<span className="font-mono font-bold text-white">
+									{roomCode.replace(/(.{3})/, "$1-")}
+								</span>
+								{isCreator && <span className="text-xs text-blue-400">★</span>}
+							</div>
+						</StatusCard>
 					</div>
 				)}
 			</div>

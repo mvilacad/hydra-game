@@ -4,10 +4,12 @@ import type {
 	ServerToClientEvents,
 } from "../types/websocketTypes";
 import { useBattle } from "../useBattle";
+import { useRoom } from "../useRoom";
 
 export class WebSocketEventHandlers {
 	private socket: Socket<ServerToClientEvents, ClientToServerEvents>;
 	private battleStore = useBattle.getState();
+	private roomStore = useRoom.getState();
 
 	constructor(socket: Socket<ServerToClientEvents, ClientToServerEvents>) {
 		this.socket = socket;
@@ -34,9 +36,11 @@ export class WebSocketEventHandlers {
 		console.log("Game state updated:", data);
 
 		if (data.players) {
+			// Sync players to both stores
 			data.players.forEach((player) => {
 				this.battleStore.addPlayer(player);
 			});
+			this.roomStore.setPlayers(data.players);
 		}
 
 		if (data.phase) {
@@ -57,7 +61,9 @@ export class WebSocketEventHandlers {
 	): void {
 		console.log("Player joined:", data.player);
 		if (data.player) {
+			// Sync to both stores
 			this.battleStore.addPlayer(data.player);
+			this.roomStore.addPlayer(data.player);
 		}
 	}
 
@@ -65,9 +71,13 @@ export class WebSocketEventHandlers {
 		data: Parameters<ServerToClientEvents["player_list_update"]>[0],
 	): void {
 		if (data.type === "player_joined" && data.player) {
+			// Sync to both stores
 			this.battleStore.addPlayer(data.player);
+			this.roomStore.addPlayer(data.player);
 		} else if (data.type === "player_left" && data.playerId) {
+			// Remove from both stores
 			this.battleStore.removePlayer(data.playerId);
+			this.roomStore.removePlayer(data.playerId);
 		}
 	}
 

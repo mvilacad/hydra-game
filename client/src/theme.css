@@ -1,26 +1,27 @@
 @import "tailwindcss";
+@import "./styles/figma-theme.css";
 
 @theme {
-	/* Core theme colors - Figma Design */
-	--color-background: 0 0% 0%; /* Pure black like Figma */
+	/* Core theme colors - Exact Figma Design */
+	--color-background: 0 0% 10%; /* Dark dungeon background from Figma */
 	--color-foreground: 0 0% 100%;
-	--color-card: 0 0% 6%; /* Dark gray for cards */
+	--color-card: 0 0% 18%; /* Dark translucent cards */
 	--color-card-foreground: 0 0% 100%;
-	--color-popover: 0 0% 6%;
+	--color-popover: 0 0% 18%;
 	--color-popover-foreground: 0 0% 100%;
-	--color-primary: 0 84% 57%; /* Red accent from Figma */
+	--color-primary: 0 73% 53%; /* Exact red from Figma button (#ff4444) */
 	--color-primary-foreground: 0 0% 100%;
-	--color-secondary: 262 83% 58%; /* Purple from badges */
-	--color-secondary-foreground: 0 0% 100%;
-	--color-muted: 0 0% 15%;
-	--color-muted-foreground: 0 0% 65%;
-	--color-accent: 262 83% 58%; /* Purple accent */
+	--color-secondary: 39 43% 70%; /* Parchment color from question cards */
+	--color-secondary-foreground: 0 0% 20%;
+	--color-muted: 0 0% 28%; /* Darker gray for muted elements */
+	--color-muted-foreground: 0 0% 70%;
+	--color-accent: 217 91% 60%; /* Blue accent for selections */
 	--color-accent-foreground: 0 0% 100%;
-	--color-destructive: 0 84% 60%;
+	--color-destructive: 0 73% 53%; /* Same red as primary */
 	--color-destructive-foreground: 0 0% 100%;
-	--color-border: 0 0% 20%;
-	--color-input: 0 0% 15%;
-	--color-ring: 358 97% 50%; /* #fe040c */
+	--color-border: 0 0% 40%; /* Lighter border for dark theme */
+	--color-input: 0 0% 28%; /* Dark input background */
+	--color-ring: 0 73% 53%; /* Focus ring matches primary */
 
 	--color-chart-1: 173 58% 39%;
 	--color-chart-2: 12 76% 61%;
@@ -163,14 +164,14 @@
 		1;
 }
 
-/* Figma-inspired game styling */
+/* Figma-inspired game styling - Stone dungeon background */
 .game-background {
-	background: radial-gradient(
-		circle at center,
-		rgba(20, 20, 20, 1) 0%,
-		rgba(0, 0, 0, 1) 100%
-	);
+	background: 
+		radial-gradient(circle at 30% 20%, rgba(139, 69, 19, 0.08) 0%, transparent 50%),
+		radial-gradient(circle at 70% 80%, rgba(87, 83, 74, 0.08) 0%, transparent 50%),
+		linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
 	position: relative;
+	min-height: 100vh;
 }
 
 .game-background::before {
@@ -180,17 +181,9 @@
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background:
-		radial-gradient(
-			circle at 20% 20%,
-			rgba(147, 51, 234, 0.05) 0%,
-			transparent 50%
-		),
-		radial-gradient(
-			circle at 80% 80%,
-			rgba(239, 68, 68, 0.05) 0%,
-			transparent 50%
-		);
+	background-image: 
+		url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.015'%3E%3Cpath d='M30 30c0-16.569 13.431-30 30-30v60c-16.569 0-30-13.431-30-30z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+	opacity: 0.1;
 	pointer-events: none;
 	z-index: 0;
 }
