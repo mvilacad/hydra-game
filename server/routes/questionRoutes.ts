@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
-import { questionService } from "../services";
 import { z } from "zod";
+import { questionService } from "../services";
 
 const router = Router();
 
@@ -12,16 +12,18 @@ const importJsonSchema = z.object({
 const createQuestionSetSchema = z.object({
 	name: z.string().min(1).max(50),
 	description: z.string().min(1).max(200),
-	questions: z.array(z.object({
-		id: z.string(),
-		question: z.string().min(1),
-		options: z.array(z.string()).min(2),
-		correct: z.string(),
-		type: z.enum(["sword", "arrow", "magic", "fire"]),
-		difficulty: z.enum(["easy", "medium", "hard"]).optional(),
-		category: z.string().optional(),
-		explanation: z.string().optional(),
-	})),
+	questions: z.array(
+		z.object({
+			id: z.string(),
+			question: z.string().min(1),
+			options: z.array(z.string()).min(2),
+			correct: z.string(),
+			type: z.enum(["sword", "arrow", "magic", "fire"]),
+			difficulty: z.enum(["easy", "medium", "hard"]).optional(),
+			category: z.string().optional(),
+			explanation: z.string().optional(),
+		}),
+	),
 	defaultTimeLimit: z.number().min(5).max(120).optional(),
 });
 
@@ -32,14 +34,14 @@ const createQuestionSetSchema = z.object({
 router.get("/sets", (req: Request, res: Response) => {
 	try {
 		const questionSets = questionService.getAvailableQuestionSets();
-		
+
 		res.json({
 			success: true,
 			questionSets,
 		});
 	} catch (error) {
 		console.error("Error getting question sets:", error);
-		
+
 		res.status(500).json({
 			success: false,
 			error: "Failed to get question sets",
@@ -54,35 +56,35 @@ router.get("/sets", (req: Request, res: Response) => {
 router.get("/sets/:setName", (req: Request, res: Response) => {
 	try {
 		const { setName } = req.params;
-		const includeQuestions = req.query.includeQuestions === 'true';
-		
+		const includeQuestions = req.query.includeQuestions === "true";
+
 		const questionSet = questionService.getQuestionSet(setName);
-		
+
 		if (!questionSet) {
 			return res.status(404).json({
 				success: false,
 				error: "Question set not found",
 			});
 		}
-		
+
 		const response: any = {
 			name: questionSet.name,
 			description: questionSet.description,
 			defaultTimeLimit: questionSet.defaultTimeLimit,
 			questionCount: questionSet.questions.length,
 		};
-		
+
 		if (includeQuestions) {
 			response.questions = questionSet.questions;
 		}
-		
+
 		res.json({
 			success: true,
 			questionSet: response,
 		});
 	} catch (error) {
 		console.error("Error getting question set:", error);
-		
+
 		res.status(500).json({
 			success: false,
 			error: "Failed to get question set",
@@ -97,13 +99,13 @@ router.get("/sets/:setName", (req: Request, res: Response) => {
 router.post("/import/json", (req: Request, res: Response) => {
 	try {
 		const { questions: questionsData } = importJsonSchema.parse(req.body);
-		
+
 		const questions = questionService.importQuestionsFromJSON(questionsData);
-		
+
 		res.json({
 			success: true,
 			message: `Successfully imported ${questions.length} questions`,
-			questions: questions.map(q => ({
+			questions: questions.map((q) => ({
 				id: q.id,
 				question: q.question,
 				type: q.type,
@@ -113,7 +115,7 @@ router.post("/import/json", (req: Request, res: Response) => {
 		});
 	} catch (error) {
 		console.error("Error importing JSON questions:", error);
-		
+
 		if (error instanceof z.ZodError) {
 			return res.status(400).json({
 				success: false,
@@ -121,10 +123,11 @@ router.post("/import/json", (req: Request, res: Response) => {
 				details: error.errors,
 			});
 		}
-		
+
 		res.status(400).json({
 			success: false,
-			error: error instanceof Error ? error.message : "Failed to import questions",
+			error:
+				error instanceof Error ? error.message : "Failed to import questions",
 		});
 	}
 });
@@ -136,20 +139,20 @@ router.post("/import/json", (req: Request, res: Response) => {
 router.post("/import/csv", (req: Request, res: Response) => {
 	try {
 		const csvData = req.body;
-		
-		if (typeof csvData !== 'string') {
+
+		if (typeof csvData !== "string") {
 			return res.status(400).json({
 				success: false,
 				error: "Request body must be CSV text",
 			});
 		}
-		
+
 		const questions = questionService.importQuestionsFromCSV(csvData);
-		
+
 		res.json({
 			success: true,
 			message: `Successfully imported ${questions.length} questions`,
-			questions: questions.map(q => ({
+			questions: questions.map((q) => ({
 				id: q.id,
 				question: q.question,
 				type: q.type,
@@ -159,10 +162,11 @@ router.post("/import/csv", (req: Request, res: Response) => {
 		});
 	} catch (error) {
 		console.error("Error importing CSV questions:", error);
-		
+
 		res.status(400).json({
 			success: false,
-			error: error instanceof Error ? error.message : "Failed to import questions",
+			error:
+				error instanceof Error ? error.message : "Failed to import questions",
 		});
 	}
 });
@@ -174,7 +178,7 @@ router.post("/import/csv", (req: Request, res: Response) => {
 router.post("/sets", (req: Request, res: Response) => {
 	try {
 		const questionSetData = createQuestionSetSchema.parse(req.body);
-		
+
 		// Create the custom question set
 		questionService.createCustomQuestionSet(questionSetData.name, {
 			name: questionSetData.name,
@@ -182,7 +186,7 @@ router.post("/sets", (req: Request, res: Response) => {
 			questions: questionSetData.questions,
 			defaultTimeLimit: questionSetData.defaultTimeLimit,
 		});
-		
+
 		res.status(201).json({
 			success: true,
 			message: `Question set '${questionSetData.name}' created successfully`,
@@ -195,7 +199,7 @@ router.post("/sets", (req: Request, res: Response) => {
 		});
 	} catch (error) {
 		console.error("Error creating question set:", error);
-		
+
 		if (error instanceof z.ZodError) {
 			return res.status(400).json({
 				success: false,
@@ -203,7 +207,7 @@ router.post("/sets", (req: Request, res: Response) => {
 				details: error.errors,
 			});
 		}
-		
+
 		res.status(500).json({
 			success: false,
 			error: "Failed to create question set",
@@ -218,23 +222,24 @@ router.post("/sets", (req: Request, res: Response) => {
 router.delete("/sets/:setName", (req: Request, res: Response) => {
 	try {
 		const { setName } = req.params;
-		
+
 		const success = questionService.removeQuestionSet(setName);
-		
+
 		if (!success) {
 			return res.status(404).json({
 				success: false,
-				error: "Question set not found or cannot be deleted (default sets are protected)",
+				error:
+					"Question set not found or cannot be deleted (default sets are protected)",
 			});
 		}
-		
+
 		res.json({
 			success: true,
 			message: `Question set '${setName}' deleted successfully`,
 		});
 	} catch (error) {
 		console.error("Error deleting question set:", error);
-		
+
 		res.status(500).json({
 			success: false,
 			error: "Failed to delete question set",
@@ -252,14 +257,17 @@ router.get("/template/csv", (req: Request, res: Response) => {
 			"id,question,option1,option2,option3,option4,correct,type,difficulty,category",
 			"q1,Qual é a capital da França?,Londres,Berlim,Paris,Madrid,Paris,sword,easy,geografia",
 			"q2,Quanto é 2 + 2?,3,4,5,6,4,magic,easy,matemática",
-		].join('\n');
-		
-		res.setHeader('Content-Type', 'text/csv');
-		res.setHeader('Content-Disposition', 'attachment; filename="questions-template.csv"');
+		].join("\n");
+
+		res.setHeader("Content-Type", "text/csv");
+		res.setHeader(
+			"Content-Disposition",
+			'attachment; filename="questions-template.csv"',
+		);
 		res.send(csvTemplate);
 	} catch (error) {
 		console.error("Error generating CSV template:", error);
-		
+
 		res.status(500).json({
 			success: false,
 			error: "Failed to generate CSV template",
@@ -295,7 +303,7 @@ router.get("/template/json", (req: Request, res: Response) => {
 				explanation: "2 + 2 = 4 (adição básica).",
 			},
 		];
-		
+
 		res.json({
 			success: true,
 			template: jsonTemplate,
@@ -312,7 +320,7 @@ router.get("/template/json", (req: Request, res: Response) => {
 		});
 	} catch (error) {
 		console.error("Error generating JSON template:", error);
-		
+
 		res.status(500).json({
 			success: false,
 			error: "Failed to generate JSON template",

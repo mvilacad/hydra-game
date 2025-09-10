@@ -22,7 +22,7 @@ export const gameStatusEnum = pgEnum("game_status", [
 	"finished",
 ]);
 
-export const characterEnum = pgEnum("character", [
+export const characterEnum = pgEnum("character_enum", [
 	"warrior",
 	"mage",
 	"archer",

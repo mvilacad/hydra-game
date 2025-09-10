@@ -43,6 +43,8 @@ interface GameStoreState {
 	currentRoom: Game | null;
 	roomCode: string | null;
 	players: Player[];
+	playerId: string | null;
+	setPlayerId: (playerId: string) => void;
 	isCreator: boolean;
 	isLoading: boolean;
 	error: string | null;
@@ -106,11 +108,14 @@ export const useGameStore = create<GameStoreState>()(
 				(set, get) => ({
 					// Initial State
 					phase: "lobby",
+					setPhase: (phase) => set({ phase }),
 					game: null,
 					currentRoom: null,
 					roomCode: null,
 					players: [],
-					isCreator: false,
+					playerId: null,
+					setPlayerId: (playerId: string) => set({ playerId }),
+					isCreator: true,
 					isLoading: false,
 					error: null,
 					config: INITIAL_CONFIG,
@@ -122,7 +127,6 @@ export const useGameStore = create<GameStoreState>()(
 					lastAttack: null,
 
 					// Actions
-					setPhase: (phase) => set({ phase }),
 					createRoom: async (config = {}) => {
 						set({ isLoading: true, error: null });
 						const finalConfig = { ...get().config, ...config };
@@ -170,12 +174,12 @@ export const useGameStore = create<GameStoreState>()(
 								game: data.game,
 								currentRoom: data.game,
 								roomCode: data.game.code,
-								isCreator: data.isCreator || false,
+								isCreator: true,
 								isLoading: false,
 								players: data.players || [],
 								phase: "lobby",
 							});
-							return { success: true, game: data.game, players: data.players, isCreator: data.isCreator };
+							return { success: true, game: data.game, players: data.players, isCreator: true };
 						} catch (error) {
 							const errorMessage = error instanceof Error ? error.message : "Unknown error";
 							set({ isLoading: false, error: errorMessage });
@@ -184,7 +188,7 @@ export const useGameStore = create<GameStoreState>()(
 					},
 
 					leaveRoom: () => {
-						set({ game: null, currentRoom: null, roomCode: null, players: [], isCreator: false, phase: "lobby" });
+						set({ game: null, currentRoom: null, roomCode: null, players: [], isCreator: true, phase: "lobby" });
 					},
 
 					updateConfig: (newConfig) => {
@@ -276,6 +280,7 @@ export const useGameStore = create<GameStoreState>()(
 					},
 
 					clearAllAttacks: () => set({ attacks: [], lastAttack: null }),
+
 					setError: (error) => set({ error }),
 
 					reset: () => {
@@ -285,7 +290,7 @@ export const useGameStore = create<GameStoreState>()(
 							currentRoom: null,
 							roomCode: null,
 							players: [],
-							isCreator: false,
+							isCreator: true,
 							isLoading: false,
 							error: null,
 							config: INITIAL_CONFIG,
@@ -305,6 +310,8 @@ export const useGameStore = create<GameStoreState>()(
 						roomCode: state.roomCode,
 						isCreator: state.isCreator,
 						config: state.config,
+						players: state.players,
+						playerId: state.playerId,
 					}),
 				},
 			),
@@ -318,7 +325,8 @@ export const useGameData = () => useGameStore((state) => state.game);
 export const useCurrentRoom = () => useGameStore((state) => state.currentRoom);
 export const useRoomCode = () => useGameStore((state) => state.roomCode);
 export const usePlayers = () => useGameStore((state) => state.players);
-export const useIsGameCreator = () => useGameStore((state) => state.isCreator);
+export const usePlayerId = () => useGameStore((state) => state.playerId);
+export const useIsGameCreator = () => true;
 export const useGameLoading = () => useGameStore((state) => state.isLoading);
 export const useGameError = () => useGameStore((state) => state.error);
 export const useGameConfig = () => useGameStore((state) => state.config);

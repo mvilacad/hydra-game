@@ -58,6 +58,8 @@ export const MobileGameView: React.FC = () => {
 		game,
 		joinRoom: joinRoomAPI,
 		setGame: setGameContext,
+		playerId,
+		setPlayerId,
 	} = useGameStore();
 
 	const roomCode = game?.code;
@@ -201,8 +203,12 @@ export const MobileGameView: React.FC = () => {
 
 				// Send player data if we have it
 				if (currentPlayer) {
-					const playerId = `${currentPlayer.name}_${Date.now()}`;
-					const playerWithId = { ...currentPlayer, playerId };
+					let newPlayerId = playerId;
+					if (!newPlayerId) {
+						newPlayerId = `${currentPlayer.name}_${Date.now()}`;
+						setPlayerId(newPlayerId);
+					}
+					const playerWithId = { ...currentPlayer, playerId: newPlayerId };
 
 					sendMessage({
 						type: "player_join",
@@ -254,8 +260,12 @@ export const MobileGameView: React.FC = () => {
 		transitionToPhase("waiting");
 
 		// Generate unique player ID
-		const playerId = `${playerData.name}_${Date.now()}`;
-		const playerWithId = { ...playerData, playerId };
+		let newPlayerId = playerId;
+		if (!newPlayerId) {
+			newPlayerId = `${playerData.name}_${Date.now()}`;
+			setPlayerId(newPlayerId);
+		}
+		const playerWithId = { ...playerData, playerId: newPlayerId };
 
 		sendMessage({
 			type: "player_join",

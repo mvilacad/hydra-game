@@ -90,7 +90,7 @@ export const useWebSocket = create<WebSocketStore>()(
 			return {
 				...INITIAL_STATE,
 
-				connect: (roomCode?: string) => {
+				connect: (roomCode?: string, isHub?: boolean) => {
 					const { socket: currentSocket } = get();
 
 					// Prevent duplicate connections
@@ -98,7 +98,7 @@ export const useWebSocket = create<WebSocketStore>()(
 						console.log("WebSocket already connected");
 						// If room code provided, join the room
 						if (roomCode && currentSocket) {
-							currentSocket.emit("join_room", { roomCode });
+							currentSocket.emit("join_room", { roomCode, isHub });
 						}
 						return;
 					}
@@ -137,7 +137,7 @@ export const useWebSocket = create<WebSocketStore>()(
 
 						// Auto-join room if code provided
 						if (roomCode) {
-							newSocket.emit("join_room", { roomCode });
+							newSocket.emit("join_room", { roomCode, isHub });
 						}
 					} catch (error) {
 						console.error("Failed to create WebSocket connection:", error);

@@ -23,7 +23,7 @@ export interface WebSocketState {
 }
 
 export interface WebSocketActions {
-  connect: (roomCode?: string) => void;
+  connect: (roomCode?: string, isHub?: boolean) => void;
   disconnect: () => void;
   reconnect: () => void;
   sendMessage: <T extends WebSocketMessage>(message: T) => boolean;

@@ -45,7 +45,7 @@ export default function HubDisplay() {
 	// Connect to WebSocket when room is available
 	useEffect(() => {
 		if (roomCode) {
-			connect(roomCode);
+			connect(roomCode, true);
 		} else {
 			connect();
 		}
@@ -103,7 +103,7 @@ export default function HubDisplay() {
 		if (isCreator && players.length > 0 && gamePhase === "waiting") {
 			sendMessage({
 				type: "admin_command",
-				data: { command: "start_battle" },
+				data: { command: "start_game" },
 			});
 		}
 	};

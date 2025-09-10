@@ -10,7 +10,7 @@ import {
 	getActivityTrends,
 	getGameAnalytics as getAdvancedGameAnalytics,
 	getLeaderboard,
-	getPlayerPerformanceAnalytics
+	getPlayerPerformanceAnalytics,
 } from "../storage/analyticsQueries";
 import { db } from "../storage/database";
 import { gameStorage } from "../storage/gameStorage";

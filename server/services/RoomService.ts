@@ -1,5 +1,5 @@
-import { gameStorage } from "../storage/gameStorage";
 import type { Game, InsertGame } from "@shared/schema";
+import { gameStorage } from "../storage/gameStorage";
 import { isValidRoomCode, normalizeRoomCode } from "../utils/roomCodes";
 
 export interface RoomConfig {
@@ -41,7 +41,7 @@ export class RoomService {
 		};
 
 		const game = await gameStorage.createGame(gameConfig);
-		
+
 		console.log(`🏠 Room created: ${game.code} (ID: ${game.id})`);
 		return game;
 	}
@@ -49,7 +49,10 @@ export class RoomService {
 	/**
 	 * Join an existing room by code or create a new one if not found
 	 */
-	async joinOrCreateRoom(roomCode?: string, config: RoomConfig = {}): Promise<JoinRoomResult> {
+	async joinOrCreateRoom(
+		roomCode?: string,
+		config: RoomConfig = {},
+	): Promise<JoinRoomResult> {
 		// If no room code provided, create a new room
 		if (!roomCode) {
 			const game = await this.createRoom(config);
@@ -62,11 +65,12 @@ export class RoomService {
 
 		// Validate and normalize room code
 		const normalizedCode = normalizeRoomCode(roomCode);
-		
+
 		if (!isValidRoomCode(normalizedCode)) {
 			return {
 				success: false,
-				error: "Invalid room code format. Code must be 6 alphanumeric characters.",
+				error:
+					"Invalid room code format. Code must be 6 alphanumeric characters.",
 			};
 		}
 
@@ -84,7 +88,9 @@ export class RoomService {
 			// Check player limit if configured
 			const config = existingGame.configuration as any;
 			if (config?.maxPlayers) {
-				const currentPlayers = await gameStorage.getPlayersByGame(existingGame.id);
+				const currentPlayers = await gameStorage.getPlayersByGame(
+					existingGame.id,
+				);
 				if (currentPlayers.length >= config.maxPlayers) {
 					return {
 						success: false,
@@ -93,7 +99,9 @@ export class RoomService {
 				}
 			}
 
-			console.log(`🚪 Joined existing room: ${existingGame.code} (ID: ${existingGame.id})`);
+			console.log(
+				`🚪 Joined existing room: ${existingGame.code} (ID: ${existingGame.id})`,
+			);
 			return {
 				success: true,
 				game: existingGame,
@@ -131,7 +139,10 @@ export class RoomService {
 	/**
 	 * Update room configuration
 	 */
-	async updateRoomConfig(gameId: number, config: RoomConfig): Promise<Game | null> {
+	async updateRoomConfig(
+		gameId: number,
+		config: RoomConfig,
+	): Promise<Game | null> {
 		const currentGame = await gameStorage.getGameById(gameId);
 		if (!currentGame) return null;
 
@@ -140,8 +151,12 @@ export class RoomService {
 		const newConfiguration = {
 			...currentConfig,
 			maxPlayers: config.maxPlayers || currentConfig.maxPlayers,
-			defaultQuestionTime: config.defaultQuestionTime || currentConfig.defaultQuestionTime,
-			autoStart: config.autoStart !== undefined ? config.autoStart : currentConfig.autoStart,
+			defaultQuestionTime:
+				config.defaultQuestionTime || currentConfig.defaultQuestionTime,
+			autoStart:
+				config.autoStart !== undefined
+					? config.autoStart
+					: currentConfig.autoStart,
 			...config.customSettings,
 		};
 
