@@ -1,7 +1,8 @@
 // Export all room management components
-export { RoomSetup } from "./components/RoomSetup";
-export { RoomJoin } from "./components/RoomJoin";
 export { RoomInfo } from "./components/RoomInfo";
+export { RoomJoin } from "./components/RoomJoin";
+export { RoomSetup } from "./components/RoomSetup";
 
 // Export types
-export type { RoomConfig, JoinRoomResult } from "@/lib/stores/useRoom";
+export type { JoinRoomResult, RoomConfig } from "@/lib/stores/useGameStore";
+

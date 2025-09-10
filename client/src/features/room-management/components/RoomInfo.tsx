@@ -1,17 +1,15 @@
-import { useState, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { GameStats } from "@/features/analytics";
-import {
-	useRoom,
-	useRoomCode,
-	useIsCreator,
-	useRoomPlayers,
-} from "@/lib/stores/useRoom";
 import { gameApi } from "@/lib/services";
+import {
+	useGameStore,
+	useIsGameCreator,
+	useRoomCode,
+} from "@/lib/stores/useGameStore";
 import type { Player } from "@shared/schema";
-import { useBattle } from "@/lib/stores";
+import { useEffect, useState } from "react";
 
 interface RoomInfoProps {
 	onStartGame?: () => void;
@@ -27,9 +25,8 @@ export function RoomInfo({
 	gamePhase = "waiting",
 }: RoomInfoProps) {
 	const roomCode = useRoomCode();
-	const isCreator = useIsCreator();
-	const { currentRoom, leaveRoom } = useRoom();
-	const { players } = useBattle();
+	const isCreator = useIsGameCreator();
+	const { currentRoom, leaveRoom, players } = useGameStore();
 	const [qrCodeValue, setQrCodeValue] = useState("");
 	const [showStats, setShowStats] = useState(false);
 

@@ -1,9 +1,9 @@
+import { useGameStore } from "@/lib/stores/useGameStore";
 import { animated, config, useSpring } from "@react-spring/three";
 import { Center, useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import type * as THREE from "three";
-import { useBattle } from "@/lib/stores/useBattle";
 
 interface Hydra3DProps {
 	position?: [number, number, number];
@@ -12,7 +12,7 @@ interface Hydra3DProps {
 
 export function Hydra3D({ position = [0, 0, 0], scale = 1 }: Hydra3DProps) {
 	const meshRef = useRef<THREE.Group>(null);
-	const { hydraHealth, maxHydraHealth, lastAttack } = useBattle();
+	const { hydraHealth, maxHydraHealth, lastAttack } = useGameStore();
 
 	// Carrega o modelo Hydra
 	const { scene } = useGLTF("/3d/hydra.glb"); // modelo na pasta public

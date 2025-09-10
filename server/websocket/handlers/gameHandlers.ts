@@ -1,5 +1,10 @@
 import type { Socket, Server } from "socket.io";
-import { gameService, roomService, questionService, statsService } from "../../services";
+import {
+	gameService,
+	roomService,
+	questionService,
+	statsService,
+} from "../../services";
 import { isValidRoomCode, normalizeRoomCode } from "../../utils/roomCodes";
 
 export interface GameHandlersInterface {
@@ -20,7 +25,10 @@ export class GameHandlers implements GameHandlersInterface {
 	/**
 	 * Handle hub or player joining a room
 	 */
-	async handleJoinRoom(socket: Socket, data: { roomCode?: string; isHub?: boolean }): Promise<void> {
+	async handleJoinRoom(
+		socket: Socket,
+		data: { roomCode?: string; isHub?: boolean },
+	): Promise<void> {
 		try {
 			console.log(`Socket ${socket.id} attempting to join room:`, data);
 
@@ -81,7 +89,9 @@ export class GameHandlers implements GameHandlersInterface {
 				gameId: game.id,
 			});
 
-			console.log(`Socket ${socket.id} joined room ${game.code} (Game ${game.id}) as ${data.isHub ? 'hub' : 'viewer'}`);
+			console.log(
+				`Socket ${socket.id} joined room ${game.code} (Game ${game.id}) as ${data.isHub ? "hub" : "viewer"}`,
+			);
 		} catch (error) {
 			console.error("Error joining room:", error);
 			socket.emit("error", { message: "Failed to join room" });
@@ -91,7 +101,10 @@ export class GameHandlers implements GameHandlersInterface {
 	/**
 	 * Handle player joining the game (mobile players)
 	 */
-	async handlePlayerJoin(socket: Socket, data: { name: string; character: string; playerId: string }): Promise<void> {
+	async handlePlayerJoin(
+		socket: Socket,
+		data: { name: string; character: string; playerId: string },
+	): Promise<void> {
 		try {
 			if (!socket.data.gameId) {
 				socket.emit("error", { message: "Not connected to a game room" });
@@ -99,7 +112,9 @@ export class GameHandlers implements GameHandlersInterface {
 			}
 
 			if (!data.name || !data.character || !data.playerId) {
-				socket.emit("error", { message: "Name, character, and player ID are required" });
+				socket.emit("error", {
+					message: "Name, character, and player ID are required",
+				});
 				return;
 			}
 
@@ -151,26 +166,35 @@ export class GameHandlers implements GameHandlersInterface {
 			// Broadcast updated game state
 			await this.broadcastGameState(socket.data.gameId, socket.server);
 
-			console.log(`Player ${data.name} (${data.character}) joined game ${socket.data.gameId}`);
+			console.log(
+				`Player ${data.name} (${data.character}) joined game ${socket.data.gameId}`,
+			);
 		} catch (error) {
 			console.error("Error handling player join:", error);
-			socket.emit("error", { message: error instanceof Error ? error.message : "Failed to join game" });
+			socket.emit("error", {
+				message: error instanceof Error ? error.message : "Failed to join game",
+			});
 		}
 	}
 
 	/**
 	 * Handle answer submission from players
 	 */
-	async handleAnswerSubmit(socket: Socket, data: {
-		playerId: string;
-		questionId: number;
-		answer: string;
-		isCorrect: boolean;
-		timeSpent: number;
-	}): Promise<void> {
+	async handleAnswerSubmit(
+		socket: Socket,
+		data: {
+			playerId: string;
+			questionId: number;
+			answer: string;
+			isCorrect: boolean;
+			timeSpent: number;
+		},
+	): Promise<void> {
 		try {
 			if (!socket.data.gameId || !socket.data.playerId) {
-				socket.emit("error", { message: "Not connected to a game or not a player" });
+				socket.emit("error", {
+					message: "Not connected to a game or not a player",
+				});
 				return;
 			}
 
@@ -223,10 +247,12 @@ export class GameHandlers implements GameHandlersInterface {
 					timeSpent: data.timeSpent,
 					points: result.answer.points,
 				},
-				data.playerId
+				data.playerId,
 			);
 
-			console.log(`Player ${socket.data.playerName} answered: ${data.answer} (${data.isCorrect ? 'correct' : 'wrong'})`);
+			console.log(
+				`Player ${socket.data.playerName} answered: ${data.answer} (${data.isCorrect ? "correct" : "wrong"})`,
+			);
 		} catch (error) {
 			console.error("Error handling answer submit:", error);
 			socket.emit("error", { message: "Failed to submit answer" });
@@ -236,7 +262,10 @@ export class GameHandlers implements GameHandlersInterface {
 	/**
 	 * Handle admin commands (only for game creators or hubs)
 	 */
-	async handleAdminCommand(socket: Socket, data: { command: string; payload?: any }): Promise<void> {
+	async handleAdminCommand(
+		socket: Socket,
+		data: { command: string; payload?: any },
+	): Promise<void> {
 		try {
 			if (!socket.data.gameId) {
 				socket.emit("error", { message: "Not connected to a game room" });
@@ -252,18 +281,19 @@ export class GameHandlers implements GameHandlersInterface {
 			const roomName = `game-${socket.data.gameId}`;
 
 			switch (data.command) {
-				case "start_game":
+				case "start_game": {
 					const startedGame = await gameService.startGame(socket.data.gameId);
 					if (startedGame) {
 						socket.to(roomName).emit("game_phase_change", { phase: "battle" });
 						await this.broadcastGameState(socket.data.gameId, socket.server);
-						
+
 						// Start first question after brief delay
 						setTimeout(async () => {
 							await this.startNextQuestion(socket.data.gameId, socket.server);
 						}, 2000);
 					}
 					break;
+				}
 
 				case "reset_game":
 					await gameService.resetGame(socket.data.gameId);
@@ -279,27 +309,38 @@ export class GameHandlers implements GameHandlersInterface {
 					socket.to(roomName).emit("question_end", {});
 					break;
 
-				case "damage_hydra":
+				case "damage_hydra": {
 					// Debug command for testing
 					const game = await roomService.getRoomById(socket.data.gameId);
 					if (game) {
-						const newHealth = Math.max(0, game.hydraHealth - (data.payload?.damage || 200));
-						await gameService.updateGameState(socket.data.gameId, { hydraHealth: newHealth });
+						const newHealth = Math.max(
+							0,
+							game.hydraHealth - (data.payload?.damage || 200),
+						);
+						await gameService.updateGameState(socket.data.gameId, {
+							hydraHealth: newHealth,
+						});
 						await this.broadcastGameState(socket.data.gameId, socket.server);
 					}
 					break;
+				}
 
-				case "heal_hydra":
+				case "heal_hydra": {
 					// Debug command for testing
 					const healGame = await roomService.getRoomById(socket.data.gameId);
 					if (healGame) {
-						await gameService.updateGameState(socket.data.gameId, { hydraHealth: healGame.maxHydraHealth });
+						await gameService.updateGameState(socket.data.gameId, {
+							hydraHealth: healGame.maxHydraHealth,
+						});
 						await this.broadcastGameState(socket.data.gameId, socket.server);
 					}
 					break;
+				}
 
 				default:
-					socket.emit("error", { message: `Unknown admin command: ${data.command}` });
+					socket.emit("error", {
+						message: `Unknown admin command: ${data.command}`,
+					});
 			}
 
 			console.log(`Admin command executed: ${data.command} by ${socket.id}`);
@@ -320,7 +361,7 @@ export class GameHandlers implements GameHandlersInterface {
 			}
 
 			await gameService.resetGame(socket.data.gameId);
-			
+
 			const roomName = `game-${socket.data.gameId}`;
 			socket.to(roomName).emit("game_reset");
 			await this.broadcastGameState(socket.data.gameId, socket.server);
@@ -339,10 +380,14 @@ export class GameHandlers implements GameHandlersInterface {
 		try {
 			if (socket.data.gameId && socket.data.playerId) {
 				// Update player connection status
-				await gameService.updatePlayerConnection(socket.data.gameId, socket.data.playerId, false);
+				await gameService.updatePlayerConnection(
+					socket.data.gameId,
+					socket.data.playerId,
+					false,
+				);
 
 				const roomName = `game-${socket.data.gameId}`;
-				
+
 				// Notify room of player disconnection
 				socket.to(roomName).emit("player_list_update", {
 					type: "player_disconnected",
@@ -352,9 +397,13 @@ export class GameHandlers implements GameHandlersInterface {
 				// Broadcast updated game state
 				await this.broadcastGameState(socket.data.gameId, socket.server);
 
-				console.log(`Player ${socket.data.playerName} disconnected from game ${socket.data.gameId}`);
+				console.log(
+					`Player ${socket.data.playerName} disconnected from game ${socket.data.gameId}`,
+				);
 			} else if (socket.data.gameId) {
-				console.log(`${socket.data.isHub ? 'Hub' : 'Viewer'} disconnected from game ${socket.data.gameId}`);
+				console.log(
+					`${socket.data.isHub ? "Hub" : "Viewer"} disconnected from game ${socket.data.gameId}`,
+				);
 			}
 		} catch (error) {
 			console.error("Error handling disconnect:", error);
@@ -370,14 +419,14 @@ export class GameHandlers implements GameHandlersInterface {
 			if (!gameState) return;
 
 			const roomName = `game-${gameId}`;
-			
+
 			// Get real-time stats
 			const realtimeStats = await statsService.getRealtimeStats(gameId);
 
 			// Broadcast to all clients in room
 			io.to(roomName).emit("game_state_update", {
 				phase: gameState.game.status,
-				players: gameState.players.map(p => ({
+				players: gameState.players.map((p) => ({
 					id: p.id,
 					name: p.name,
 					character: p.character,
@@ -404,7 +453,7 @@ export class GameHandlers implements GameHandlersInterface {
 			if (!question) return; // Game ended
 
 			const roomName = `game-${gameId}`;
-			
+
 			// Emit question start to all clients
 			io.to(roomName).emit("question_start", {
 				id: question.id,
@@ -418,7 +467,7 @@ export class GameHandlers implements GameHandlersInterface {
 			// Auto-advance after time limit
 			setTimeout(async () => {
 				io.to(roomName).emit("question_end", {});
-				
+
 				// Check if game continues
 				setTimeout(async () => {
 					const gameState = await gameService.getGameState(gameId);

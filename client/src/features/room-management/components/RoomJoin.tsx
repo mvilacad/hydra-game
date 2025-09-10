@@ -1,12 +1,12 @@
-import { useState } from "react";
+import { LoadingScreen } from "@/components/feedback/LoadingScreen";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useRoom } from "@/lib/stores/useRoom";
 import { gameApi } from "@/lib/services";
-import { LoadingScreen } from "@/components/feedback/LoadingScreen";
+import { useGameStore } from "@/lib/stores/useGameStore";
+import { useState } from "react";
 
 interface RoomJoinProps {
 	onRoomJoined?: (roomCode: string, isCreator: boolean) => void;
@@ -14,24 +14,28 @@ interface RoomJoinProps {
 	initialRoomCode?: string;
 }
 
-export function RoomJoin({ onRoomJoined, onCancel, initialRoomCode = "" }: RoomJoinProps) {
+export function RoomJoin({
+	onRoomJoined,
+	onCancel,
+	initialRoomCode = "",
+}: RoomJoinProps) {
 	const [roomCode, setRoomCode] = useState(initialRoomCode);
 	const [roomCodeError, setRoomCodeError] = useState<string | null>(null);
 
-	const { joinRoom, isLoading, error } = useRoom();
+	const { joinRoom, isLoading, error } = useGameStore();
 
 	const handleRoomCodeChange = (value: string) => {
 		// Format room code as user types (XXX-XXX)
 		const cleanCode = gameApi.parseRoomCode(value);
 		const formattedCode = gameApi.formatRoomCode(cleanCode);
-		
+
 		setRoomCode(formattedCode);
 		setRoomCodeError(null);
 	};
 
 	const handleJoinRoom = async () => {
 		const cleanCode = gameApi.parseRoomCode(roomCode);
-		
+
 		// Validate room code format
 		if (!gameApi.validateRoomCode(cleanCode)) {
 			setRoomCodeError("Código inválido. Use o formato ABC-123 ou ABC123");
@@ -40,7 +44,7 @@ export function RoomJoin({ onRoomJoined, onCancel, initialRoomCode = "" }: RoomJ
 
 		try {
 			const result = await joinRoom(cleanCode);
-			
+
 			if (result.success && result.game) {
 				onRoomJoined?.(result.game.code, result.isCreator || false);
 			}
@@ -56,7 +60,12 @@ export function RoomJoin({ onRoomJoined, onCancel, initialRoomCode = "" }: RoomJ
 	};
 
 	if (isLoading) {
-		return <LoadingScreen title="Entrando na Sala..." message="Conectando à batalha..." />;
+		return (
+			<LoadingScreen
+				title="Entrando na Sala..."
+				message="Conectando à batalha..."
+			/>
+		);
 	}
 
 	return (
@@ -98,8 +107,8 @@ export function RoomJoin({ onRoomJoined, onCancel, initialRoomCode = "" }: RoomJ
 								Cancelar
 							</Button>
 						)}
-						<Button 
-							onClick={handleJoinRoom} 
+						<Button
+							onClick={handleJoinRoom}
 							disabled={isLoading || !roomCode.trim()}
 							className="flex-1"
 						>
@@ -111,8 +120,8 @@ export function RoomJoin({ onRoomJoined, onCancel, initialRoomCode = "" }: RoomJ
 						<p className="text-xs text-gray-400 text-center mb-3">
 							Não tem um código?
 						</p>
-						<Button 
-							variant="outline" 
+						<Button
+							variant="outline"
 							onClick={() => onRoomJoined?.("", true)}
 							className="w-full"
 						>

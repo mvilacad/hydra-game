@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type {
-	BattlePhase,
-	BattlePhaseTransition,
-	BattleState,
-} from "../types/battleTypes";
+import type { BattlePhase, BattleState } from "../types/battleTypes";
 
 const INITIAL_BATTLE_STATE: BattleState = {
 	phase: "setup",

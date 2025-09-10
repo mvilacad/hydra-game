@@ -1,7 +1,7 @@
+import { useGameStore } from "@/lib/stores/useGameStore";
 import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useEffect, useState } from "react";
-import { useBattle } from "@/lib/stores/useBattle";
 import { Hydra3D } from "../Entities/Hydra3D";
 import { PlayerAvatar } from "../Entities/PlayerAvatar";
 
@@ -10,7 +10,7 @@ interface BattleSceneProps {
 }
 
 export function BattleScene({ className }: BattleSceneProps) {
-	const { players, attacks, clearAttack } = useBattle();
+	const { players, attacks } = useGameStore();
 
 	const [particles, setParticles] = useState<
 		Array<{
@@ -51,10 +51,10 @@ export function BattleScene({ className }: BattleSceneProps) {
 
 			// Clear attack after showing effect
 			setTimeout(() => {
-				clearAttack(attack.id);
+				// clearAttack(attack.id);
 			}, 1000);
 		});
-	}, [attacks, clearAttack]);
+	}, [attacks]);
 
 	// Clean up old particles
 	useEffect(() => {

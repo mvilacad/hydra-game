@@ -6,10 +6,8 @@ import { QRCodeDisplay } from "@/components/ui/qr-code-display";
 import { BattleScene } from "@/features/game-3d";
 import { RoomJoin, RoomInfo, RoomSetup } from "@/features/room-management";
 import { FigmaButton, StatusCard, ParchmentCard } from "@/components/figma-ui";
-import { useBattle } from "@/lib/stores/useBattle";
 import { useWebSocket } from "@/lib/stores/useWebSocket";
-import { useRoom, useRoomCode, useIsCreator } from "@/lib/stores/useRoom";
-import { useGame } from "@/lib/stores/useGame";
+import { useGameStore } from "@/lib/stores/useGameStore";
 
 export default function HubDisplay() {
 	const [showRoomJoin, setShowRoomJoin] = useState(true);
@@ -17,16 +15,20 @@ export default function HubDisplay() {
 	const [initialRoomCode, setInitialRoomCode] = useState("");
 
 	const { connect, isConnected, sendMessage } = useWebSocket();
-	const gameState = useBattle();
-	const { players, gamePhase, attacks, currentQuestion } = gameState;
+	const {
+		players,
+		phase: gamePhase,
+		attacks,
+		currentQuestion,
+		game,
+		isCreator,
+		joinRoom: joinRoomAPI,
+		setGame: setGameContext,
+	} = useGameStore();
 
-	console.log("Game state is", gameState);
+	const roomCode = game?.code;
 
-	// Room management
-	const roomCode = useRoomCode();
-	const isCreator = useIsCreator();
-	const { currentRoom, joinRoom: joinRoomAPI } = useRoom();
-	const { setGameContext, phase: gamePhase2 } = useGame();
+	console.log("Game state is", useGameStore.getState());
 
 	// Check URL params for room code
 	useEffect(() => {
@@ -150,7 +152,7 @@ export default function HubDisplay() {
 				<div className="absolute top-0 left-0 pointer-events-auto">
 					<BattleHUD
 						gameState={{
-							...gameState,
+							...useGameStore.getState(),
 							phase: gamePhase as any,
 						}}
 						isConnected={isConnected}

@@ -3,13 +3,11 @@ import type {
 	ClientToServerEvents,
 	ServerToClientEvents,
 } from "../types/websocketTypes";
-import { useBattle } from "../useBattle";
-import { useRoom } from "../useRoom";
+import { useGameStore } from "../useGameStore";
 
 export class WebSocketEventHandlers {
 	private socket: Socket<ServerToClientEvents, ClientToServerEvents>;
-	private battleStore = useBattle.getState();
-	private roomStore = useRoom.getState();
+	private gameStore = useGameStore.getState();
 
 	constructor(socket: Socket<ServerToClientEvents, ClientToServerEvents>) {
 		this.socket = socket;
@@ -36,23 +34,19 @@ export class WebSocketEventHandlers {
 		console.log("Game state updated:", data);
 
 		if (data.players) {
-			// Sync players to both stores
-			data.players.forEach((player) => {
-				this.battleStore.addPlayer(player);
-			});
-			this.roomStore.setPlayers(data.players);
+			this.gameStore.setPlayers(data.players);
 		}
 
 		if (data.phase) {
-			this.battleStore.setGamePhase(data.phase);
+			this.gameStore.setPhase(data.phase);
 		}
 
 		if (typeof data.hydraHealth === "number") {
-			this.battleStore.setHydraHealth(data.hydraHealth);
+			this.gameStore.setHydraHealth(data.hydraHealth);
 		}
 
 		if (data.currentQuestion) {
-			this.battleStore.setCurrentQuestion(data.currentQuestion);
+			this.gameStore.setCurrentQuestion(data.currentQuestion);
 		}
 	}
 
@@ -61,9 +55,7 @@ export class WebSocketEventHandlers {
 	): void {
 		console.log("Player joined:", data.player);
 		if (data.player) {
-			// Sync to both stores
-			this.battleStore.addPlayer(data.player);
-			this.roomStore.addPlayer(data.player);
+			this.gameStore.addPlayer(data.player);
 		}
 	}
 
@@ -71,13 +63,9 @@ export class WebSocketEventHandlers {
 		data: Parameters<ServerToClientEvents["player_list_update"]>[0],
 	): void {
 		if (data.type === "player_joined" && data.player) {
-			// Sync to both stores
-			this.battleStore.addPlayer(data.player);
-			this.roomStore.addPlayer(data.player);
+			this.gameStore.addPlayer(data.player);
 		} else if (data.type === "player_left" && data.playerId) {
-			// Remove from both stores
-			this.battleStore.removePlayer(data.playerId);
-			this.roomStore.removePlayer(data.playerId);
+			this.gameStore.removePlayer(data.playerId);
 		}
 	}
 
@@ -89,9 +77,9 @@ export class WebSocketEventHandlers {
 
 		// Update player score if correct
 		if (isCorrect && points) {
-			const player = this.battleStore.players.find((p) => p.id === playerId);
+			const player = this.gameStore.players.find((p) => p.id === playerId);
 			if (player) {
-				this.battleStore.updatePlayer(playerId, {
+				this.gameStore.updatePlayer(playerId, {
 					score: player.score + points,
 				});
 			}
@@ -99,7 +87,7 @@ export class WebSocketEventHandlers {
 
 		// Add attack effect if successful
 		if (isCorrect && attackType !== "miss") {
-			this.battleStore.addAttack({
+			this.gameStore.addAttack({
 				id: `${playerId}-${Date.now()}`,
 				playerId,
 				type: attackType,
@@ -113,28 +101,27 @@ export class WebSocketEventHandlers {
 		question: Parameters<ServerToClientEvents["question_start"]>[0],
 	): void {
 		console.log("Question started:", question);
-		this.battleStore.setCurrentQuestion(question);
-		this.battleStore.setGamePhase("battle");
+		this.gameStore.setCurrentQuestion(question);
+		this.gameStore.setPhase("battle");
 	}
 
 	private handleQuestionEnd(
 		data: Parameters<ServerToClientEvents["question_end"]>[0],
 	): void {
 		console.log("Question ended:", data);
-		this.battleStore.setCurrentQuestion(null);
+		this.gameStore.setCurrentQuestion(null);
 	}
 
 	private handleGamePhaseChange(
 		data: Parameters<ServerToClientEvents["game_phase_change"]>[0],
 	): void {
 		console.log("Game phase changed:", data.phase);
-		this.battleStore.setGamePhase(data.phase);
+		this.gameStore.setPhase(data.phase);
 	}
 
 	private handleGameReset(): void {
 		console.log("Game reset");
-		this.battleStore.resetHydra();
-		this.battleStore.clearAllAttacks();
+		this.gameStore.reset();
 	}
 
 	public cleanup(): void {

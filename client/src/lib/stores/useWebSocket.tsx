@@ -6,7 +6,7 @@ import type {
 	WebSocketEventHandlers,
 	WebSocketStore,
 } from "./types/websocketTypes";
-import { useRoom } from "./useRoom";
+import { useGameStore } from "./useGameStore";
 import {
 	createConnection,
 	validateConnection,
@@ -115,22 +115,22 @@ export const useWebSocket = create<WebSocketStore>()(
 						newSocket.on("room_joined", (data) => {
 							console.log("Room joined:", data);
 							// Update room store with joined room data
-							const roomStore = useRoom.getState();
+							const gameStore = useGameStore.getState();
 							if (data.room) {
-								roomStore.setPlayers(data.players || []);
+								gameStore.setPlayers(data.players || []);
 							}
 						});
 
 						newSocket.on("room_state_update", (data) => {
 							console.log("Room state update:", data);
-							const roomStore = useRoom.getState();
-							roomStore.setPlayers(data.players || []);
+							const gameStore = useGameStore.getState();
+							gameStore.setPlayers(data.players || []);
 						});
 
 						newSocket.on("room_error", (data) => {
 							console.error("Room error:", data.error);
-							const roomStore = useRoom.getState();
-							roomStore.setError(data.error);
+							const gameStore = useGameStore.getState();
+							gameStore.setError(data.error);
 						});
 
 						set({ socket: newSocket });

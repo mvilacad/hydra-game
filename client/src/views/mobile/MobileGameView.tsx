@@ -11,9 +11,7 @@ import type { CharacterType } from "@/features/characters";
 import { PlayerSetup } from "@/features/player-setup";
 import { Question } from "@/features/questions";
 import { RoomJoin } from "@/features/room-management";
-import { useBattle } from "@/lib/stores/useBattle";
-import { useGame } from "@/lib/stores/useGame";
-import { useRoom, useRoomCode } from "@/lib/stores/useRoom";
+import { useGameStore } from "@/lib/stores/useGameStore";
 import { useWebSocket } from "@/lib/stores/useWebSocket";
 import type { Player } from "@shared/types";
 import { useEffect, useState } from "react";
@@ -54,17 +52,15 @@ export const MobileGameView: React.FC = () => {
 
 	const {
 		players,
-		gamePhase: battlePhase,
+		phase: battlePhase,
 		hydraHealth,
 		maxHydraHealth,
-		currentQuestion: battleCurrentQuestion,
-	} = useBattle();
+		game,
+		joinRoom: joinRoomAPI,
+		setGame: setGameContext,
+	} = useGameStore();
 
-
-	// Room management
-	const roomCode = useRoomCode();
-	const { joinRoom: joinRoomAPI, currentRoom } = useRoom();
-	const { setGameContext } = useGame();
+	const roomCode = game?.code;
 
 	const { battleState, transitionToPhase, startPreparationPhase, resetBattle } =
 		useBattlePhases();
@@ -119,19 +115,22 @@ export const MobileGameView: React.FC = () => {
 
 	// Handle question lifecycle
 	useEffect(() => {
-		if (battleCurrentQuestion && currentPlayer) {
-			if (!currentQuestion || currentQuestion.id !== battleCurrentQuestion.id) {
-				setCurrentQuestion(battleCurrentQuestion);
+		if (battlePhase === "playing" && currentPlayer) {
+			if (
+				!currentQuestion ||
+				currentQuestion.id !== game?.currentQuestionIndex
+			) {
+				// setCurrentQuestion(battleCurrentQuestion);
 				setTimeLeft(30);
 			}
-		} else if (!battleCurrentQuestion && currentQuestion) {
+		} else if (battlePhase !== "playing" && currentQuestion) {
 			setCurrentQuestion(null);
 			if (battleState.phase === "question" || battleState.phase === "results") {
 				transitionToPhase("waiting");
 			}
 		}
 	}, [
-		battleCurrentQuestion,
+		game,
 		currentPlayer,
 		currentQuestion,
 		battleState.phase,
@@ -140,7 +139,6 @@ export const MobileGameView: React.FC = () => {
 
 	// Handle battle phase transitions
 	useEffect(() => {
-
 		console.log("Battle phase changed to", battlePhase);
 		console.log("Internal battle state phase is", battleState.phase);
 		if (
@@ -416,7 +414,7 @@ export const MobileGameView: React.FC = () => {
 				return (
 					<ResultsScreen
 						character={currentPlayer.character as CharacterType}
-						players={players as Player[]}
+						players={players as unknown as Player[]}
 						currentPlayerId={currentPlayer.id || ""}
 						hydraHealth={hydraHealth}
 						maxHydraHealth={maxHydraHealth}
