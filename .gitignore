@@ -1,10 +1,13 @@
+# dependências e builds
 node_modules
 dist
 .DS_Store
 server/public
-vite.config.ts.*
 *.tar.gz
+.vite.config.ts.*
 .playwright-mcp
 .figma
-.env
+
+# variáveis de ambiente (ignorar só o real)
+.env.*
 !.env.example
