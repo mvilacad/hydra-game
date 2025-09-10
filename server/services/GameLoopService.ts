@@ -287,9 +287,17 @@ class GameLoop {
     
     const roomName = `game-${this.gameId}`;
     
+    // Debug: listar clientes conectados na sala
+    const connectedSockets = await this.io.in(roomName).fetchSockets();
+    console.log(`📡 Broadcasting to room ${roomName} with ${connectedSockets.length} clients`);
+    
     this.io.to(roomName).emit("game_state_update", this.currentState);
     
-    console.log(`📡 Broadcasted state for game ${this.gameId}: ${this.currentState.phase}`);
+    console.log(`📡 Broadcasted state for game ${this.gameId}: ${this.currentState.phase}`, {
+      players: this.currentState.players.length,
+      phase: this.currentState.phase,
+      hydraHealth: this.currentState.hydraHealth
+    });
   }
 
   /**

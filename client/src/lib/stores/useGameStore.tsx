@@ -3,6 +3,7 @@ import type { Game, Player } from "@shared/schema";
 import type { Attack, AuthoritativeGameState, AuthoritativeGamePhase } from "@shared/types";
 import { create } from "zustand";
 import { devtools, persist, subscribeWithSelector } from "zustand/middleware";
+import { useEffect, useState } from "react";
 
 // Combined type for the game phase, incorporating stages from all previous stores
 export type GamePhase =
@@ -390,9 +391,29 @@ export const usePhaseTimestamps = () => useGameStore((state) => ({
 // Calculated time remaining based on server timestamps
 export const useTimeRemaining = () => {
 	const { phaseEndsAt } = usePhaseTimestamps();
-	if (!phaseEndsAt) return 0;
+	const [timeRemaining, setTimeRemaining] = useState(0);
 	
-	const now = Date.now();
-	const endsAt = new Date(phaseEndsAt).getTime();
-	return Math.max(0, Math.ceil((endsAt - now) / 1000)); // Return seconds remaining
+	useEffect(() => {
+		if (!phaseEndsAt) {
+			setTimeRemaining(0);
+			return;
+		}
+
+		const updateTimer = () => {
+			const now = Date.now();
+			const endsAt = new Date(phaseEndsAt).getTime();
+			const remaining = Math.max(0, Math.ceil((endsAt - now) / 1000));
+			setTimeRemaining(remaining);
+		};
+
+		// Update immediately
+		updateTimer();
+
+		// Update every second
+		const interval = setInterval(updateTimer, 1000);
+
+		return () => clearInterval(interval);
+	}, [phaseEndsAt]);
+
+	return timeRemaining;
 };

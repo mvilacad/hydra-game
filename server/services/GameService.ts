@@ -80,7 +80,9 @@ export class GameService {
 		});
 
 		// Check if we should auto-start the game
+		console.log(`🎮 Auto-start check: autoStart=${config.autoStart}, status=${game.status}`);
 		if (config.autoStart && game.status === "waiting") {
+			console.log(`🚀 Checking auto-start for game ${gameId}`);
 			await this.checkAutoStart(gameId);
 		}
 
@@ -150,11 +152,13 @@ export class GameService {
 		}
 
 		// Reset game state for new battle
+		console.log(`🎮 Starting game ${gameId}: resetting to battle state`);
 		const updatedGame = await gameStorage.updateGame(gameId, {
 			status: "battle",
 			currentQuestionIndex: 0,
 			hydraHealth: game.maxHydraHealth,
 		});
+		console.log(`✅ Game ${gameId} updated to battle status`);
 
 		await gameStorage.logGameEvent({
 			gameId,
@@ -384,13 +388,24 @@ export class GameService {
 		const game = await gameStorage.getGameById(gameId);
 		const config = (game?.configuration as any) || {};
 
-		if (!config.autoStart || game?.status !== "waiting") return;
+		console.log(`🔍 checkAutoStart: gameId=${gameId}, config=${JSON.stringify(config)}`);
+
+		if (!config.autoStart || game?.status !== "waiting") {
+			console.log(`❌ Auto-start conditions not met: autoStart=${config.autoStart}, status=${game?.status}`);
+			return;
+		}
 
 		const players = await gameStorage.getPlayersByGame(gameId);
 		const minPlayers = config.minPlayersToStart || 1;
+		const connectedPlayers = players.filter((p) => p.isConnected).length;
 
-		if (players.filter((p) => p.isConnected).length >= minPlayers) {
+		console.log(`👥 Players: ${connectedPlayers}/${minPlayers} (connected/required)`);
+
+		if (connectedPlayers >= minPlayers) {
+			console.log(`🚀 Auto-starting game ${gameId} with ${connectedPlayers} players!`);
 			await this.startGame(gameId);
+		} else {
+			console.log(`⏳ Waiting for more players: need ${minPlayers - connectedPlayers} more`);
 		}
 	}
 

@@ -10,10 +10,10 @@ import type { CharacterType } from "@/features/characters";
 import { PlayerSetup } from "@/features/player-setup";
 import { Question } from "@/features/questions";
 import { RoomJoin } from "@/features/room-management";
-import { useGameStore, useGamePhase, usePhaseTimestamps } from "@/lib/stores/useGameStore";
+import { useGameStore } from "@/lib/stores/useGameStore";
 import { useWebSocket } from "@/lib/stores/useWebSocket";
 import type { Player } from "@shared/types";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { EndedScreen } from "./components/EndedScreen";
 import { WaitingScreen } from "./components/WaitingScreen";
 import {
@@ -62,19 +62,17 @@ export const MobileGameView: React.FC = () => {
 	} = useGameStore();
 
 	const roomCode = game?.code;
-	const currentPhase = useGamePhase();
-	const { phaseEndsAt } = usePhaseTimestamps();
-
+	
 	// Server-authoritative timing - mock battleState para compatibilidade temporária
 	const battleState = {
-		phase: currentPhase === "playing" ? "question" : "waiting",
+		phase: battlePhase === "playing" ? "question" : "waiting",
 		preparationTimer: { count: 0 },
 	};
 	
-	// Mock functions para compatibilidade temporária
-	const transitionToPhase = () => console.log("Transition handled by server");
-	const startPreparationPhase = () => console.log("Preparation handled by server");
-	const resetBattle = () => console.log("Reset handled by server");
+	// Mock functions para compatibilidade temporária (estáveis)
+	const transitionToPhase = useCallback(() => console.log("Transition handled by server"), []);
+	const startPreparationPhase = useCallback(() => console.log("Preparation handled by server"), []);
+	const resetBattle = useCallback(() => console.log("Reset handled by server"), []);
 
 	const { submitAnswer } = useAnswerSubmission({
 		onSubmissionComplete: () => {
@@ -199,7 +197,12 @@ export const MobileGameView: React.FC = () => {
 				setGameContext(result.game);
 
 				if (useFigmaDesign) {
-					setGameFlow("lobby");
+					// Se não tem currentPlayer, vai para character-selection primeiro
+					if (!currentPlayer) {
+						setGameFlow("character-selection");
+					} else {
+						setGameFlow("lobby");
+					}
 				} else {
 					setShowRoomJoin(false);
 				}

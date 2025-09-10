@@ -267,35 +267,54 @@ export class GameHandlers implements GameHandlersInterface {
 		socket: Socket,
 		data: { command: string; payload?: any },
 	): Promise<void> {
+		console.log(`🔧 Admin command: ${data.command} by ${socket.id}`);
+		console.log(`🔧 Socket data:`, {
+			gameId: socket.data.gameId,
+			isCreator: socket.data.isCreator,
+			isHub: socket.data.isHub
+		});
+
 		try {
 			if (!socket.data.gameId) {
+				console.log(`❌ Admin command blocked: No game ID`);
 				socket.emit("error", { message: "Not connected to a game room" });
 				return;
 			}
 
 			// Only allow admin commands from creators or hubs
 			if (!socket.data.isCreator && !socket.data.isHub) {
+				console.log(`❌ Admin command blocked: No admin privileges`);
 				socket.emit("error", { message: "Admin privileges required" });
 				return;
 			}
 
+			console.log(`✅ Admin command authorized, proceeding...`);
+
 			const roomName = `game-${socket.data.gameId}`;
+			
+			console.log(`🎯 About to switch on command: "${data.command}"`);
 
 			switch (data.command) {
 				case "start_game": {
+					console.log(`🚀 Starting game ${socket.data.gameId}...`);
 					const startedGame = await gameService.startGame(socket.data.gameId);
+					console.log(`🎮 GameService.startGame result:`, startedGame ? "success" : "failed");
+					
 					if (startedGame) {
 						// Inicia o GameLoopService em vez de usar setTimeout
+						console.log(`📝 Calling gameLoopService.startGame(${socket.data.gameId})...`);
 						const gameLoopStarted = await gameLoopService.startGame(
 							socket.data.gameId, 
 							socket.server
 						);
 						
 						if (gameLoopStarted) {
-							console.log(`🎮 Game loop started for game ${socket.data.gameId}`);
+							console.log(`✅ Game loop started for game ${socket.data.gameId}`);
 						} else {
 							console.error(`❌ Failed to start game loop for game ${socket.data.gameId}`);
 						}
+					} else {
+						console.error(`❌ GameService.startGame failed for game ${socket.data.gameId}`);
 					}
 					break;
 				}
@@ -347,6 +366,7 @@ export class GameHandlers implements GameHandlersInterface {
 				}
 
 				default:
+					console.log(`❌ Unknown admin command: "${data.command}"`);
 					socket.emit("error", {
 						message: `Unknown admin command: ${data.command}`,
 					});

@@ -98,7 +98,7 @@ export class PostgreSQLGameStorage implements GameStorageInterface {
 			configuration: {
 				defaultQuestionTime: 30,
 				maxPlayers: 20,
-				autoStart: false,
+				autoStart: true,
 			},
 			...config,
 		};

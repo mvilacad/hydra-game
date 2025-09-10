@@ -32,17 +32,22 @@ export class WebSocketEventHandlers {
 	private handleGameStateUpdate(
 		data: Parameters<ServerToClientEvents["game_state_update"]>[0],
 	): void {
-		console.log("Game state updated:", data);
+		console.log("🔄 CLIENT: Game state updated:", {
+			phase: data.phase,
+			players: data.players?.length,
+			hydraHealth: data.hydraHealth,
+			hasTimestamps: !!(data.phaseStartsAt && data.phaseEndsAt)
+		});
 
 		// Verifica se é o novo formato autoritativo
 		if (this.isAuthoritativeGameState(data)) {
-			console.log("📡 Using server-authoritative game state");
+			console.log("📡 CLIENT: Using server-authoritative game state", data.phase);
 			this.gameStore.handleGameStateUpdate(data);
 			return;
 		}
 
 		// Fallback para formato legacy
-		console.log("📡 Using legacy game state format");
+		console.log("📡 CLIENT: Using legacy game state format");
 		if (data.players) {
 			this.gameStore.setPlayers(data.players);
 		}

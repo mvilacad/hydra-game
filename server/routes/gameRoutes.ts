@@ -22,7 +22,7 @@ const createGameSchema = z.object({
 	timeLimit: z.number().min(5).max(120).optional(),
 	individualTimeLimits: z.record(z.string(), z.number()).optional(),
 	maxPlayers: z.number().min(1).max(50).optional().default(20),
-	autoStart: z.boolean().optional().default(false),
+	autoStart: z.boolean().optional().default(true),
 });
 
 const joinGameSchema = z.object({
