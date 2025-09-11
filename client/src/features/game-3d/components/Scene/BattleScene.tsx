@@ -1,15 +1,33 @@
 // BattleScene2DBackground.tsx
 import { useGameStore } from "@/lib/stores/useGameStore";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, useFBX } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useMemo } from "react";
-import { Hydra3D } from "../Entities/Hydra3D";
 import { PlayerAvatar } from "../Entities/PlayerAvatar";
 
 interface BattleSceneProps {
 	className?: string;
 }
 
+const arenaSize = 50; // ou use a escala real do FBX
+
+export function GrassFloor() {
+	const fbx = useFBX("/3d/scenario/Grass.fbx");
+
+	// Ajuste escala e posição conforme necessário
+	fbx.scale.set(0.2, 0.2, 0.2);
+	fbx.position.set(0, 0, 0);
+
+	// Habilita sombras
+	fbx.traverse((child: any) => {
+		if (child.isMesh) {
+			child.receiveShadow = true;
+			child.castShadow = false;
+		}
+	});
+
+	return <primitive object={fbx} />;
+}
 export function BattleScene({ className }: BattleSceneProps) {
 	const { players, attacks } = useGameStore();
 
@@ -27,18 +45,17 @@ export function BattleScene({ className }: BattleSceneProps) {
 		return assignments;
 	}, [players]);
 
-	// radial positions (same as your original idea)
 	const playerPositions = useMemo(() => {
-		return players.map((_, index) => {
-			const angle = (index / Math.max(players.length, 1)) * Math.PI * 2;
-			const radius = 6;
-			return [Math.cos(angle) * radius, 0, Math.sin(angle) * radius] as [
-				number,
-				number,
-				number,
-			];
+		const numPlayers = players.length;
+		const radius = arenaSize / 3; // deixa um espaço do centro
+		return players.map((_, i) => {
+			const angle = (i / numPlayers) * Math.PI * 2;
+			const x = Math.cos(angle) * radius;
+			const z = Math.sin(angle) * radius;
+			const y = 0.1; // altura para os pés tocarem o chão
+			return [x, y, z] as [number, number, number];
 		});
-	}, [players.length, players.map]);
+	}, [players.length]);
 
 	return (
 		<div className={`relative w-full h-full ${className ?? ""}`}>
@@ -56,7 +73,7 @@ export function BattleScene({ className }: BattleSceneProps) {
 					alpha: false,
 				}}
 			>
-				<color attach="background" args={["#---"]} />
+				<color attach="background" args={["#a0a0a0"]} />
 				<ambientLight intensity={0.35} />
 				<directionalLight
 					position={[10, 20, 10]}
@@ -68,19 +85,11 @@ export function BattleScene({ className }: BattleSceneProps) {
 				/>
 
 				<Suspense fallback={null}>
-					<mesh
-						receiveShadow
-						rotation={[-Math.PI / 2, 0, 0]}
-						position={[0, -0.1, 0]}
-					>
-						<planeGeometry args={[50, 50]} />
-						<meshStandardMaterial
-							color={0x90ee90}
-							roughness={0.8}
-							metalness={0.0}
-						/>
-					</mesh>
-					<Hydra3D position={[0, 2, 0]} scale={1} />
+					{/* Arena FBX */}
+					<GrassFloor />
+
+					{/* 3D Hydra */}
+					{/* <Hydra3D position={[0, 2, 0]} scale={1} /> */}
 
 					{/* 3D player avatars */}
 					{players.filter(Boolean).map((player, index) => (
@@ -93,7 +102,7 @@ export function BattleScene({ className }: BattleSceneProps) {
 						/>
 					))}
 
-					{/* Camera controls - keep users able to zoom/rotate a bit */}
+					{/* Camera controls */}
 					<OrbitControls
 						enablePan={false}
 						enableZoom={true}
